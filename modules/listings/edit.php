@@ -1,8 +1,8 @@
 <?php
 /**
- * ResQFood — Create Food Listing
- * Only accessible to verified business users.
- * Handles the form + image upload in a single POST.
+ * ResQFood — Edit Listing
+ * Only the listing owner (business) can edit.
+ * Cannot edit collected/cancelled listings.
  */
 require_once __DIR__ . '/../../includes/session.php';
 require_once __DIR__ . '/../../config/db.php';
@@ -11,20 +11,40 @@ require_once __DIR__ . '/../../includes/auth.php';
 require_once __DIR__ . '/../../includes/flash.php';
 require_once __DIR__ . '/../../includes/validation.php';
 require_once __DIR__ . '/../../includes/csrf.php';
-require_once __DIR__ . '/../../includes/profile.php';
 require_once __DIR__ . '/../../includes/listings.php';
 
-requireRole(['business']);
+requireRole(['business', 'admin']);
 
-$uid    = currentUserId();
-$pdo    = db();
+$uid       = currentUserId();
+$listingId = (int) ($_GET['id'] ?? $_POST['listing_id'] ?? 0);
+$listing   = getListing($listingId);
+
+// Security: exists and owned
+if (!$listing) {
+    setFlash('error', 'Listing not found.');
+    redirect(baseUrl('modules/listings/index.php'));
+}
+// Admins can edit any; businesses only their own
+if (currentUserRole() === 'business' && (int) $listing['business_user_id'] !== $uid) {
+    setFlash('error', 'You do not have permission to edit that listing.');
+    redirect(baseUrl('modules/listings/index.php'));
+}
+if (in_array($listing['status'], ['collected', 'cancelled'])) {
+    setFlash('error', 'Collected or cancelled listings cannot be edited.');
+    redirect(baseUrl('modules/listings/view.php?id=' . $listingId));
+}
+
 $errors = [];
-
 $old = [
-    'title'          => '', 'category'    => '', 'quantity'       => '',
-    'unit'           => 'portions', 'description' => '',
-    'pickup_address' => '', 'pickup_start' => '', 'pickup_end'    => '',
-    'expiry_time'    => '',
+    'title'          => $listing['title'],
+    'category'       => $listing['category']       ?? '',
+    'quantity'       => $listing['quantity'],
+    'unit'           => $listing['unit'],
+    'description'    => $listing['description']    ?? '',
+    'pickup_address' => $listing['pickup_address'] ?? '',
+    'pickup_start'   => $listing['pickup_start'],
+    'pickup_end'     => $listing['pickup_end'],
+    'expiry_time'    => $listing['expiry_time']    ?? '',
 ];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -44,41 +64,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     ];
     $old = $data;
 
-    // ── Validation ────────────────────────────────────────────────────────
     validateRequired($data, ['title', 'quantity', 'unit', 'pickup_start', 'pickup_end'], $errors);
     validateMaxLength($data['title'], 200, 'title', $errors);
-
-    if ($data['quantity'] !== '') {
-        validateNumeric($data['quantity'], 'quantity', $errors, 0.01);
-    }
+    if ($data['quantity'] !== '') validateNumeric($data['quantity'], 'quantity', $errors, 0.01);
     if ($data['pickup_start'] !== '' && $data['pickup_end'] !== '') {
         validateDateOrder($data['pickup_start'], $data['pickup_end'], 'pickup_end', $errors);
     }
-    if ($data['expiry_time'] !== '' && $data['pickup_end'] !== '') {
-        if (strtotime($data['expiry_time']) < strtotime($data['pickup_end'])) {
-            $errors['expiry_time'] = 'Expiry time should be at or after the pickup end time.';
-        }
-    }
-    if ($data['category'] !== '') {
-        validateEnum($data['category'], listingCategoryOptions(), 'category', $errors);
-    }
-    if ($data['unit'] !== '') {
-        validateEnum($data['unit'], listingUnitOptions(), 'unit', $errors);
-    }
+    if ($data['category'] !== '') validateEnum($data['category'], listingCategoryOptions(), 'category', $errors);
+    if ($data['unit'] !== '')     validateEnum($data['unit'],     listingUnitOptions(),    'unit',     $errors);
 
-    // ── Persist ───────────────────────────────────────────────────────────
     if (empty($errors)) {
         try {
+            $pdo = db();
             $pdo->beginTransaction();
 
-            $stmt = $pdo->prepare('
-                INSERT INTO food_listings
-                    (business_user_id, title, category, quantity, unit, description,
-                     pickup_address, pickup_start, pickup_end, expiry_time, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "available")
-            ');
-            $stmt->execute([
-                $uid,
+            $pdo->prepare('
+                UPDATE food_listings
+                SET    title = ?, category = ?, quantity = ?, unit = ?,
+                       description = ?, pickup_address = ?,
+                       pickup_start = ?, pickup_end = ?, expiry_time = ?,
+                       updated_at = NOW()
+                WHERE  id = ?
+            ')->execute([
                 $data['title'],
                 $data['category']       ?: null,
                 $data['quantity'],
@@ -88,38 +95,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $data['pickup_start'],
                 $data['pickup_end'],
                 $data['expiry_time']    ?: null,
+                $listingId,
             ]);
-            $listingId = (int) $pdo->lastInsertId();
 
-            // Handle optional image upload
-            $imageError = '';
+            // Optional new image upload
             if (!empty($_FILES['image']['name'])) {
                 try {
-                    uploadListingImage($_FILES['image'], $listingId, true);
+                    uploadListingImage($_FILES['image'], $listingId, false);
                 } catch (RuntimeException $e) {
-                    $imageError = $e->getMessage();
+                    setFlash('warning', 'Listing saved, but image could not be uploaded: ' . $e->getMessage());
                 }
             }
 
-            auditLog('listing_create', 'id=' . $listingId, $uid);
+            auditLog('listing_edit', 'id=' . $listingId, $uid);
             $pdo->commit();
 
-            $msg = 'Listing "' . truncate($data['title'], 40) . '" published successfully.';
-            if ($imageError !== '') {
-                $msg .= ' (Note: Image could not be saved — ' . $imageError . ')';
-            }
-            setFlash('success', $msg);
+            setFlash('success', 'Listing updated successfully.');
             redirect(baseUrl('modules/listings/view.php?id=' . $listingId));
 
         } catch (Throwable $e) {
             $pdo->rollBack();
-            error_log('[ResQFood CreateListing] ' . $e->getMessage());
-            $errors['_general'] = 'Could not save the listing. Please try again.';
+            error_log('[ResQFood EditListing] ' . $e->getMessage());
+            $errors['_general'] = 'Could not save changes. Please try again.';
         }
     }
 }
 
-$pageTitle = 'Post New Listing';
+$pageTitle = 'Edit Listing';
 require_once __DIR__ . '/../../partials/header.php';
 ?>
 
@@ -127,10 +129,10 @@ require_once __DIR__ . '/../../partials/header.php';
     <div class="breadcrumb">
         <a href="<?= baseUrl('dashboard.php') ?>">Dashboard</a> /
         <a href="<?= baseUrl('modules/listings/index.php') ?>">My Listings</a> /
-        <span>Create</span>
+        <a href="<?= baseUrl('modules/listings/view.php?id=' . $listingId) ?>"><?= e(truncate($listing['title'], 30)) ?></a> /
+        <span>Edit</span>
     </div>
-    <h1>Post a New Listing</h1>
-    <p class="text-muted">Share your surplus food with the community.</p>
+    <h1>Edit Listing</h1>
 </div>
 
 <?php if (!empty($errors['_general'])): ?>
@@ -142,10 +144,10 @@ require_once __DIR__ . '/../../partials/header.php';
 
 <form method="POST" action="" enctype="multipart/form-data" novalidate>
     <?= csrfField() ?>
+    <input type="hidden" name="listing_id" value="<?= $listingId ?>">
 
     <div style="display:grid;grid-template-columns:1fr 320px;gap:1.5rem;align-items:start">
 
-        <!-- Main details -->
         <div class="card">
             <div class="card-header"><h3>Listing Details</h3></div>
             <div class="card-body">
@@ -154,12 +156,8 @@ require_once __DIR__ . '/../../partials/header.php';
                     <label class="form-label" for="title">Title <span class="required">*</span></label>
                     <input type="text" id="title" name="title"
                            class="form-control <?= isset($errors['title']) ? 'is-invalid' : '' ?>"
-                           value="<?= e($old['title']) ?>"
-                           placeholder="e.g. Fresh sourdough loaves — end of day"
-                           maxlength="200" required>
-                    <?php if (isset($errors['title'])): ?>
-                        <span class="form-error"><?= e($errors['title']) ?></span>
-                    <?php endif; ?>
+                           value="<?= e($old['title']) ?>" maxlength="200" required>
+                    <?php if (isset($errors['title'])): ?><span class="form-error"><?= e($errors['title']) ?></span><?php endif; ?>
                 </div>
 
                 <div class="form-row">
@@ -168,9 +166,7 @@ require_once __DIR__ . '/../../partials/header.php';
                         <select id="category" name="category" class="form-control">
                             <option value="">— Select category —</option>
                             <?php foreach (listingCategoryOptions() as $cat): ?>
-                                <option value="<?= e($cat) ?>" <?= $old['category'] === $cat ? 'selected' : '' ?>>
-                                    <?= e($cat) ?>
-                                </option>
+                                <option value="<?= e($cat) ?>" <?= $old['category'] === $cat ? 'selected' : '' ?>><?= e($cat) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -179,96 +175,74 @@ require_once __DIR__ . '/../../partials/header.php';
                         <div style="display:flex;gap:.5rem">
                             <input type="number" name="quantity" step="0.01" min="0.01"
                                    class="form-control <?= isset($errors['quantity']) ? 'is-invalid' : '' ?>"
-                                   value="<?= e($old['quantity']) ?>"
-                                   placeholder="e.g. 12"
-                                   style="flex:1" required>
+                                   value="<?= e($old['quantity']) ?>" style="flex:1" required>
                             <select name="unit" class="form-control" style="width:120px">
                                 <?php foreach (listingUnitOptions() as $unit): ?>
-                                    <option value="<?= e($unit) ?>" <?= $old['unit'] === $unit ? 'selected' : '' ?>>
-                                        <?= e($unit) ?>
-                                    </option>
+                                    <option value="<?= e($unit) ?>" <?= $old['unit'] === $unit ? 'selected' : '' ?>><?= e($unit) ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <?php if (isset($errors['quantity'])): ?>
-                            <span class="form-error"><?= e($errors['quantity']) ?></span>
-                        <?php endif; ?>
+                        <?php if (isset($errors['quantity'])): ?><span class="form-error"><?= e($errors['quantity']) ?></span><?php endif; ?>
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label class="form-label" for="description">Description</label>
-                    <textarea id="description" name="description" class="form-control" rows="3"
-                              placeholder="Describe the food, its condition, what to expect…"><?= e($old['description']) ?></textarea>
+                    <textarea id="description" name="description" class="form-control" rows="3"><?= e($old['description']) ?></textarea>
                 </div>
 
                 <div class="form-group">
                     <label class="form-label" for="pickup_address">Pickup Address</label>
                     <input type="text" id="pickup_address" name="pickup_address"
-                           class="form-control"
-                           value="<?= e($old['pickup_address']) ?>"
-                           placeholder="Leave blank to use your business profile address">
-                    <span class="form-hint">Shown to the person who reserves.</span>
+                           class="form-control" value="<?= e($old['pickup_address']) ?>">
                 </div>
 
             </div>
         </div>
 
-        <!-- Side panel: time + image -->
         <div style="display:flex;flex-direction:column;gap:1rem">
 
             <div class="card">
                 <div class="card-header"><h3>Pickup Window</h3></div>
                 <div class="card-body">
-
                     <div class="form-group">
-                        <label class="form-label" for="pickup_start">Pickup starts <span class="required">*</span></label>
+                        <label class="form-label" for="pickup_start">Starts <span class="required">*</span></label>
                         <input type="datetime-local" id="pickup_start" name="pickup_start"
                                class="form-control <?= isset($errors['pickup_start']) ? 'is-invalid' : '' ?>"
                                value="<?= e(datetimeToInput($old['pickup_start'])) ?>" required>
-                        <?php if (isset($errors['pickup_start'])): ?>
-                            <span class="form-error"><?= e($errors['pickup_start']) ?></span>
-                        <?php endif; ?>
+                        <?php if (isset($errors['pickup_start'])): ?><span class="form-error"><?= e($errors['pickup_start']) ?></span><?php endif; ?>
                     </div>
-
                     <div class="form-group">
-                        <label class="form-label" for="pickup_end">Pickup ends <span class="required">*</span></label>
+                        <label class="form-label" for="pickup_end">Ends <span class="required">*</span></label>
                         <input type="datetime-local" id="pickup_end" name="pickup_end"
                                class="form-control <?= isset($errors['pickup_end']) ? 'is-invalid' : '' ?>"
                                value="<?= e(datetimeToInput($old['pickup_end'])) ?>" required>
-                        <?php if (isset($errors['pickup_end'])): ?>
-                            <span class="form-error"><?= e($errors['pickup_end']) ?></span>
-                        <?php endif; ?>
+                        <?php if (isset($errors['pickup_end'])): ?><span class="form-error"><?= e($errors['pickup_end']) ?></span><?php endif; ?>
                     </div>
-
                     <div class="form-group">
-                        <label class="form-label" for="expiry_time">Food expires at <span class="text-muted" style="font-weight:400">(optional)</span></label>
+                        <label class="form-label" for="expiry_time">Food expires</label>
                         <input type="datetime-local" id="expiry_time" name="expiry_time"
-                               class="form-control <?= isset($errors['expiry_time']) ? 'is-invalid' : '' ?>"
+                               class="form-control"
                                value="<?= e(datetimeToInput($old['expiry_time'])) ?>">
-                        <span class="form-hint">Helps users judge urgency.</span>
-                        <?php if (isset($errors['expiry_time'])): ?>
-                            <span class="form-error"><?= e($errors['expiry_time']) ?></span>
-                        <?php endif; ?>
                     </div>
-
                 </div>
             </div>
 
             <div class="card">
-                <div class="card-header"><h3>Photo <span class="text-muted" style="font-weight:400">(optional)</span></h3></div>
+                <div class="card-header"><h3>Add Photo</h3></div>
                 <div class="card-body">
-                    <div class="form-group">
-                        <input type="file" name="image" id="image"
-                               class="form-control" accept="image/jpeg,image/png,image/webp">
-                        <span class="form-hint">JPG, PNG or WebP · Max 5 MB</span>
-                    </div>
+                    <?php if ($listing['primary_image'] ?? null): ?>
+                    <img src="<?= baseUrl(e($listing['primary_image'])) ?>"
+                         alt="Current photo" style="width:100%;border-radius:var(--r-md);margin-bottom:.75rem">
+                    <?php endif; ?>
+                    <input type="file" name="image" class="form-control" accept="image/jpeg,image/png,image/webp">
+                    <span class="form-hint">Upload a new image to replace the current one.</span>
                 </div>
             </div>
 
-            <div class="card-footer" style="background:transparent;padding:0">
-                <button type="submit" class="btn btn-primary btn-block btn-lg">Publish Listing</button>
-                <a href="<?= baseUrl('modules/listings/index.php') ?>"
+            <div>
+                <button type="submit" class="btn btn-primary btn-block btn-lg">Save Changes</button>
+                <a href="<?= baseUrl('modules/listings/view.php?id=' . $listingId) ?>"
                    class="btn btn-outline btn-block mt-1">Cancel</a>
             </div>
 
