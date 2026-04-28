@@ -215,20 +215,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
 
                 <div class="form-group">
-                    <div class="flex-between" style="margin-bottom:.38rem">
-                        <label class="form-label" for="password" style="margin-bottom:0">
-                            Password <span class="required" aria-hidden="true">*</span>
-                        </label>
+                    <label class="form-label" for="password">
+                        Password <span class="required" aria-hidden="true">*</span>
+                    </label>
+                    <div class="input-with-btn">
+                        <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            class="form-control <?= isset($errors['password']) ? 'is-invalid' : '' ?>"
+                            autocomplete="current-password"
+                            required
+                            aria-required="true"
+                        >
+                        <button type="button" class="btn-input-action" data-toggle-pw aria-label="Show password">
+                            <svg class="icon-eye" viewBox="0 0 20 20" width="16" fill="none">
+                                <path d="M1 10s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7z" stroke="currentColor" stroke-width="1.4"/>
+                                <circle cx="10" cy="10" r="2.5" stroke="currentColor" stroke-width="1.4"/>
+                            </svg>
+                            <svg class="icon-eye-off" viewBox="0 0 20 20" width="16" fill="none">
+                                <path d="M3 3l14 14M8.5 8.6A2.5 2.5 0 0011.4 11.5M6.3 5.3C4.3 6.5 2.7 8.4 1 10c0 0 3.5 7 9 7 1.6 0 3-.4 4.2-1.1M13.9 13.9C16 12.6 17.5 10.8 19 10c0 0-3.5-7-9-7-1.2 0-2.3.2-3.3.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+                            </svg>
+                        </button>
                     </div>
-                    <input
-                        type="password"
-                        id="password"
-                        name="password"
-                        class="form-control <?= isset($errors['password']) ? 'is-invalid' : '' ?>"
-                        autocomplete="current-password"
-                        required
-                        aria-required="true"
-                    >
                     <?php if (isset($errors['password'])): ?>
                         <span class="form-error"><?= e($errors['password']) ?></span>
                     <?php endif; ?>

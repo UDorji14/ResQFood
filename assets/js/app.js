@@ -183,7 +183,25 @@
 
 
     /* ══════════════════════════════════════════════════════════
-       5. Form Enhancements
+       5. Password Visibility Toggle
+    ══════════════════════════════════════════════════════════ */
+    (function initPasswordToggle() {
+        $$('[data-toggle-pw]').forEach(btn => {
+            on(btn, 'click', function () {
+                const wrapper = this.closest('.input-with-btn');
+                const input   = wrapper?.querySelector('input[type="password"], input[type="text"]');
+                if (!input) return;
+
+                const show = input.type === 'password';
+                input.type = show ? 'text' : 'password';
+                this.classList.toggle('is-visible', show);
+                this.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+            });
+        });
+    })();
+
+    /* ══════════════════════════════════════════════════════════
+       6. Form Enhancements (confirm dialogs, char counters, file preview)
     ══════════════════════════════════════════════════════════ */
     (function initForms() {
         // Confirm dialogs via data-confirm attribute

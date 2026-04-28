@@ -172,16 +172,30 @@ $pageTitle = 'Organisation Profile';
 require_once __DIR__ . '/../../partials/header.php';
 ?>
 
-<div class="page-head">
-    <div class="breadcrumb">
-        <a href="<?= baseUrl('dashboard.php') ?>">Dashboard</a> / <span>Organisation Profile</span>
-    </div>
-    <div class="page-head__top">
-        <div>
-            <h1>Organisation Profile</h1>
-            <p class="text-muted">Complete your charity details to help businesses trust and prioritise your requests.</p>
+<!-- Breadcrumb -->
+<div class="breadcrumb">
+    <a href="<?= baseUrl('dashboard.php') ?>">Dashboard</a>
+    <span>Organisation Profile</span>
+</div>
+
+<!-- Profile Hero -->
+<div class="profile-hero" style="background:linear-gradient(135deg,#3a2e25,#7a4a35,var(--amber))">
+    <div class="profile-hero__inner">
+        <div class="profile-hero__avatar" style="background:rgba(255,255,255,0.2)">
+            <?= e(mb_strtoupper(mb_substr($profile['organization_name'] ?? $profile['full_name'] ?? 'C', 0, 1))) ?>
         </div>
-        <?= verificationBadge($profile['verification_status'] ?? 'pending') ?>
+        <div class="profile-hero__info">
+            <h1><?= e($profile['organization_name'] ?: ($profile['full_name'] ?? 'Your Organisation')) ?></h1>
+            <p>
+                <?= e($profile['email'] ?? '') ?>
+                <?php if (!empty($profile['city'])): ?> &middot; <?= e($profile['city']) ?><?php endif; ?>
+                <?php if (!empty($profile['contact_person'])): ?> &middot; Contact: <?= e($profile['contact_person']) ?><?php endif; ?>
+                &middot; Since <?= formatDate($profile['joined_at'] ?? '', 'M Y') ?>
+            </p>
+        </div>
+        <div class="profile-hero__actions">
+            <?= verificationBadge($profile['verification_status'] ?? 'pending') ?>
+        </div>
     </div>
 </div>
 
@@ -197,16 +211,6 @@ require_once __DIR__ . '/../../partials/header.php';
 
     <!-- ── Sidebar ── -->
     <aside class="profile-sidebar">
-        <div class="card">
-            <div class="card-body" style="text-align:center;padding:1.75rem 1.5rem">
-                <div class="profile-sidebar__avatar" style="margin:0 auto .85rem;background:linear-gradient(135deg,var(--terra),var(--amber))">
-                    <?= e(mb_strtoupper(mb_substr($profile['organization_name'] ?? $profile['full_name'] ?? 'C', 0, 1))) ?>
-                </div>
-                <div class="profile-sidebar__name"><?= e($profile['organization_name'] ?? $profile['full_name'] ?? '') ?></div>
-                <div class="profile-sidebar__email"><?= e($profile['email'] ?? '') ?></div>
-                <div class="profile-sidebar__joined">Joined <?= formatDate($profile['joined_at'] ?? '', 'd M Y') ?></div>
-            </div>
-        </div>
 
         <div class="card">
             <div class="card-body" style="padding:.75rem">
@@ -227,15 +231,42 @@ require_once __DIR__ . '/../../partials/header.php';
             </div>
         </div>
 
-        <div class="card">
-            <div class="card-body" style="padding:1rem 1.25rem">
-                <div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:.65rem">Verification Status</div>
+        <div class="card" style="overflow:hidden">
+            <div style="padding:.8rem 1.1rem;background:linear-gradient(135deg,rgba(181,96,74,.05),rgba(196,145,62,.08));border-bottom:1px solid var(--line)">
+                <div style="font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.09em;color:var(--text-muted);margin-bottom:.55rem">Verification Status</div>
                 <?= verificationBadge($profile['verification_status'] ?? 'pending') ?>
-                <p style="font-size:.76rem;color:var(--text-muted);margin-top:.5rem;line-height:1.5">
-                    Verification is managed by the platform admin. A complete profile helps speed up the process.
+            </div>
+            <div style="padding:.85rem 1.1rem">
+                <p style="font-size:.78rem;color:var(--text-muted);line-height:1.55">
+                    <?php if (($profile['verification_status'] ?? '') === 'verified'): ?>
+                        Your organisation is verified and fully active on ResQFood.
+                    <?php else: ?>
+                        A complete profile helps the admin team verify your organisation faster.
+                    <?php endif; ?>
                 </p>
             </div>
         </div>
+
+        <!-- Activity stats -->
+        <?php
+            $colStmt = db()->prepare('SELECT COUNT(*) FROM reservations WHERE reserved_by = ? AND reservation_status = "collected"');
+            $colStmt->execute([$uid]);
+            $totalCollected = (int) $colStmt->fetchColumn();
+        ?>
+        <div class="card">
+            <div class="card-body" style="padding:1rem 1.1rem">
+                <div style="font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.09em;color:var(--text-muted);margin-bottom:.75rem">Your Activity</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+                    <span style="font-size:.84rem;color:var(--text-muted)">Total collections</span>
+                    <span style="font-weight:800;color:var(--olive-deep)"><?= $totalCollected ?></span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                    <span style="font-size:.84rem;color:var(--text-muted)">Profile complete</span>
+                    <span style="font-weight:800;color:var(--olive-deep)"><?= $completion ?>%</span>
+                </div>
+            </div>
+        </div>
+
     </aside>
 
     <!-- ── Main Area ── -->

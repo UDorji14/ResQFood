@@ -427,9 +427,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <label class="form-label" for="password">
                             Password <span class="required" aria-hidden="true">*</span>
                         </label>
+                        <div class="input-with-btn">
                         <input type="password" id="password" name="password"
                                class="form-control <?= isset($errors['password']) ? 'is-invalid' : '' ?>"
-                               autocomplete="new-password" required id="pw-input">
+                               autocomplete="new-password" required>
+                        <button type="button" class="btn-input-action" data-toggle-pw aria-label="Show password">
+                            <svg class="icon-eye" viewBox="0 0 20 20" width="16" fill="none"><path d="M1 10s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7z" stroke="currentColor" stroke-width="1.4"/><circle cx="10" cy="10" r="2.5" stroke="currentColor" stroke-width="1.4"/></svg>
+                            <svg class="icon-eye-off" viewBox="0 0 20 20" width="16" fill="none"><path d="M3 3l14 14M8.5 8.6A2.5 2.5 0 0011.4 11.5M6.3 5.3C4.3 6.5 2.7 8.4 1 10c0 0 3.5 7 9 7 1.6 0 3-.4 4.2-1.1M13.9 13.9C16 12.6 17.5 10.8 19 10c0 0-3.5-7-9-7-1.2 0-2.3.2-3.3.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+                        </button>
+                        </div>
                         <!-- Password strength bars -->
                         <div class="pw-strength" id="pw-strength" aria-hidden="true">
                             <div class="pw-strength-bar" id="pb1"></div>
@@ -446,9 +452,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <label class="form-label" for="password_confirm">
                             Confirm password <span class="required" aria-hidden="true">*</span>
                         </label>
+                        <div class="input-with-btn">
                         <input type="password" id="password_confirm" name="password_confirm"
                                class="form-control <?= isset($errors['password_confirm']) ? 'is-invalid' : '' ?>"
                                autocomplete="new-password" required>
+                        <button type="button" class="btn-input-action" data-toggle-pw aria-label="Show password">
+                            <svg class="icon-eye" viewBox="0 0 20 20" width="16" fill="none"><path d="M1 10s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7z" stroke="currentColor" stroke-width="1.4"/><circle cx="10" cy="10" r="2.5" stroke="currentColor" stroke-width="1.4"/></svg>
+                            <svg class="icon-eye-off" viewBox="0 0 20 20" width="16" fill="none"><path d="M3 3l14 14M8.5 8.6A2.5 2.5 0 0011.4 11.5M6.3 5.3C4.3 6.5 2.7 8.4 1 10c0 0 3.5 7 9 7 1.6 0 3-.4 4.2-1.1M13.9 13.9C16 12.6 17.5 10.8 19 10c0 0-3.5-7-9-7-1.2 0-2.3.2-3.3.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+                        </button>
+                        </div>
                         <?php if (isset($errors['password_confirm'])): ?>
                             <span class="form-error"><?= e($errors['password_confirm']) ?></span>
                         <?php endif; ?>

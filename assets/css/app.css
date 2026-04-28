@@ -1815,7 +1815,352 @@ input[type='file'].form-control::file-selector-button:hover {
     .stat-grid { grid-template-columns: 1fr; }
 }
 
-/* ── 28. Print ───────────────────────────────────────────────── */
+/* ── 28. Password Toggle ─────────────────────────────────────── */
+.input-with-btn {
+    position: relative;
+}
+.input-with-btn .form-control {
+    padding-right: 2.8rem;
+}
+.btn-input-action {
+    position: absolute;
+    right: 0.55rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    padding: 5px;
+    border-radius: var(--r-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color var(--dur-fast), background var(--dur-fast);
+}
+.btn-input-action:hover { color: var(--olive); background: var(--olive-light); }
+.btn-input-action .icon-eye-off { display: none; }
+.btn-input-action.is-visible .icon-eye     { display: none; }
+.btn-input-action.is-visible .icon-eye-off { display: block; }
+
+/* ── 29. Dashboard Welcome Banner ────────────────────────────── */
+.dash-welcome {
+    border-radius: var(--r-2xl);
+    padding: 1.75rem clamp(1.5rem, 4vw, 2.5rem);
+    margin-bottom: 1.75rem;
+    position: relative;
+    overflow: hidden;
+}
+.dash-welcome--business  { background: linear-gradient(135deg, var(--olive-deep) 0%, var(--olive) 65%, #6a8f5a 100%); }
+.dash-welcome--user,
+.dash-welcome--general_user { background: linear-gradient(135deg, #36513a, #4a6741, #5a7d50); }
+.dash-welcome--charity   { background: linear-gradient(135deg, #2e3d2c, #44633f, var(--sage)); }
+.dash-welcome--admin     { background: linear-gradient(135deg, #1a2518, #2d3f28, #3a5535); }
+/* Decorative blobs */
+.dash-welcome::before {
+    content: '';
+    position: absolute;
+    top: -40%; right: -5%;
+    width: 42%; aspect-ratio: 1;
+    background: rgba(255,255,255,0.06);
+    border-radius: 50%;
+    pointer-events: none;
+}
+.dash-welcome::after {
+    content: '';
+    position: absolute;
+    bottom: -50%; left: 55%;
+    width: 28%; aspect-ratio: 1;
+    background: rgba(255,255,255,0.04);
+    border-radius: 50%;
+    pointer-events: none;
+}
+.dash-welcome__inner {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+.dash-welcome__eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.5rem;
+}
+.dash-welcome__date {
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.55);
+}
+.dash-welcome__greeting {
+    font-family: var(--f-display);
+    font-size: clamp(1.35rem, 3vw, 1.9rem);
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    margin-bottom: 0.35rem;
+}
+.dash-welcome__sub {
+    font-size: 0.88rem;
+    color: rgba(255,255,255,0.62);
+    max-width: 480px;
+    line-height: 1.5;
+}
+.dash-welcome__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.65rem 1.4rem;
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    border: 1.5px solid rgba(255,255,255,0.28);
+    border-radius: var(--r-pill);
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background var(--dur-base), border-color var(--dur-base);
+    backdrop-filter: blur(8px);
+}
+.dash-welcome__cta:hover {
+    background: rgba(255,255,255,0.22);
+    border-color: rgba(255,255,255,0.4);
+    color: #fff;
+    text-decoration: none;
+}
+/* Role badge inside the banner */
+.role-badge--light {
+    color: rgba(255,255,255,0.9);
+    background: rgba(255,255,255,0.12);
+    border-color: rgba(255,255,255,0.25);
+}
+
+/* ── 30. Browse CTA Band ─────────────────────────────────────── */
+.dash-cta-band {
+    border-radius: var(--r-xl);
+    padding: 1.5rem 1.75rem;
+    margin-bottom: 1.75rem;
+    background: linear-gradient(135deg, rgba(74,103,65,0.07), rgba(122,154,106,0.1));
+    border: 1px solid rgba(74,103,65,0.18);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+.dash-cta-band__icon {
+    width: 52px;
+    height: 52px;
+    border-radius: var(--r-lg);
+    background: rgba(74,103,65,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--olive);
+    flex-shrink: 0;
+}
+.dash-cta-band__body { flex: 1; }
+.dash-cta-band__body h3 {
+    font-family: var(--f-display);
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--olive-deep);
+    margin-bottom: 0.2rem;
+    letter-spacing: -0.01em;
+}
+.dash-cta-band__body p {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+/* ── 31. Dashboard Layout Helpers ────────────────────────────── */
+.dash-cols {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 1.5rem;
+    align-items: start;
+    margin-bottom: 1.75rem;
+}
+.dash-cols--wide-right {
+    grid-template-columns: 1fr 340px;
+}
+
+/* ── 32. Profile Hero ────────────────────────────────────────── */
+.profile-hero {
+    border-radius: var(--r-2xl);
+    background: linear-gradient(135deg, var(--olive-deep) 0%, var(--olive) 65%, var(--sage) 100%);
+    padding: 2rem clamp(1.5rem, 4vw, 2.5rem);
+    margin-bottom: 1.75rem;
+    position: relative;
+    overflow: hidden;
+}
+.profile-hero::before {
+    content: '';
+    position: absolute;
+    top: -45%; right: -5%;
+    width: 44%; aspect-ratio: 1;
+    background: rgba(255,255,255,0.06);
+    border-radius: 50%;
+    pointer-events: none;
+}
+.profile-hero__inner {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+.profile-hero__avatar {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.18);
+    border: 2px solid rgba(255,255,255,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.65rem;
+    font-weight: 800;
+    color: #fff;
+    flex-shrink: 0;
+}
+.profile-hero__info { flex: 1; }
+.profile-hero__info h1 {
+    font-family: var(--f-display);
+    font-size: clamp(1.2rem, 2.5vw, 1.55rem);
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 0.3rem;
+    letter-spacing: -0.01em;
+}
+.profile-hero__info p {
+    font-size: 0.84rem;
+    color: rgba(255,255,255,0.62);
+}
+.profile-hero__actions { flex-shrink: 0; }
+
+/* ── 33. Stat Card Icon Variant ──────────────────────────────── */
+.stat-card__icon-box {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--r-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.85rem;
+    flex-shrink: 0;
+}
+.stat-card--olive .stat-card__icon-box { background: rgba(74,103,65,0.1);   color: var(--olive); }
+.stat-card--amber .stat-card__icon-box { background: rgba(196,145,62,0.1);  color: var(--amber); }
+.stat-card--terra .stat-card__icon-box { background: rgba(181,96,74,0.1);   color: var(--terra); }
+.stat-card--sage  .stat-card__icon-box { background: rgba(122,154,106,0.12);color: #4e7a46; }
+
+/* ── 34. Impact Mini Preview ─────────────────────────────────── */
+.impact-preview {
+    background: linear-gradient(135deg, rgba(74,103,65,0.06), rgba(122,154,106,0.08));
+    border: 1px solid rgba(74,103,65,0.18);
+    border-radius: var(--r-xl);
+    padding: 1.2rem 1.35rem;
+}
+.impact-preview__title {
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.impact-preview__title a {
+    font-size: 0.72rem;
+    color: var(--olive);
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: 0;
+}
+.impact-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--line);
+    gap: 0.5rem;
+}
+.impact-row:last-child { border-bottom: none; padding-bottom: 0; }
+.impact-row__label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.84rem;
+    color: var(--text-muted);
+}
+.impact-row__label svg { flex-shrink: 0; color: var(--olive); opacity: 0.65; }
+.impact-row__value {
+    font-weight: 800;
+    font-size: 1rem;
+    color: var(--olive-deep);
+    white-space: nowrap;
+}
+
+/* ── 35. Side Quick Actions ──────────────────────────────────── */
+.side-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.side-action {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.75rem 0.9rem;
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    text-decoration: none;
+    color: var(--text-mid);
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: background var(--dur-fast), border-color var(--dur-fast), transform var(--dur-fast);
+}
+.side-action:hover {
+    background: rgba(74,103,65,0.05);
+    border-color: rgba(74,103,65,0.25);
+    color: var(--olive);
+    text-decoration: none;
+    transform: translateX(2px);
+}
+.side-action__icon {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--r-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+/* ── Responsive dashboard helpers ────────────────────────────── */
+@media (max-width: 900px) {
+    .dash-cols { grid-template-columns: 1fr; }
+    .dash-cols--wide-right { grid-template-columns: 1fr; }
+}
+@media (max-width: 768px) {
+    .dash-welcome { padding: 1.4rem 1.25rem; }
+    .dash-welcome__greeting { font-size: 1.35rem; }
+    .dash-cta-band { flex-direction: column; align-items: flex-start; gap: 1rem; }
+    .dash-cta-band__icon { display: none; }
+    .profile-hero { padding: 1.5rem 1.25rem; }
+    .profile-hero__avatar { width: 56px; height: 56px; font-size: 1.35rem; }
+}
+
+/* ── 36. Print ───────────────────────────────────────────────── */
 @media print {
     .app-nav, .app-footer, .btn, .nav-drawer, .nav-backdrop { display: none !important; }
     .app-main { padding-top: 0; }

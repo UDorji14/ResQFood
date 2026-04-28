@@ -180,16 +180,30 @@ $pageTitle = 'Business Profile';
 require_once __DIR__ . '/../../partials/header.php';
 ?>
 
-<div class="page-head">
-    <div class="breadcrumb">
-        <a href="<?= baseUrl('dashboard.php') ?>">Dashboard</a> / <span>Business Profile</span>
-    </div>
-    <div class="page-head__top">
-        <div>
-            <h1>Business Profile</h1>
-            <p class="text-muted">Keep your details accurate so customers can find and trust you.</p>
+<!-- Breadcrumb -->
+<div class="breadcrumb">
+    <a href="<?= baseUrl('dashboard.php') ?>">Dashboard</a>
+    <span>Business Profile</span>
+</div>
+
+<!-- Profile Hero -->
+<div class="profile-hero">
+    <div class="profile-hero__inner">
+        <div class="profile-hero__avatar">
+            <?= e(mb_strtoupper(mb_substr($profile['full_name'] ?? 'U', 0, 1))) ?>
         </div>
-        <?= verificationBadge($profile['verification_status'] ?? 'pending') ?>
+        <div class="profile-hero__info">
+            <h1><?= e($profile['business_name'] ?: ($profile['full_name'] ?? 'Your Business')) ?></h1>
+            <p>
+                <?= e($profile['email'] ?? '') ?>
+                <?php if (!empty($profile['city'])): ?> &middot; <?= e($profile['city']) ?><?php endif; ?>
+                <?php if (!empty($profile['business_type'])): ?> &middot; <?= e($profile['business_type']) ?><?php endif; ?>
+                &middot; Member since <?= formatDate($profile['joined_at'] ?? '', 'M Y') ?>
+            </p>
+        </div>
+        <div class="profile-hero__actions">
+            <?= verificationBadge($profile['verification_status'] ?? 'pending') ?>
+        </div>
     </div>
 </div>
 
@@ -205,17 +219,6 @@ require_once __DIR__ . '/../../partials/header.php';
 
     <!-- ── Sidebar ── -->
     <aside class="profile-sidebar">
-        <div class="card">
-            <div class="card-body" style="text-align:center;padding:1.75rem 1.5rem">
-                <div class="profile-sidebar__avatar" style="margin:0 auto .85rem">
-                    <?= e(mb_strtoupper(mb_substr($profile['full_name'] ?? 'U', 0, 1))) ?>
-                </div>
-                <div class="profile-sidebar__name"><?= e($profile['full_name'] ?? '') ?></div>
-                <div class="profile-sidebar__email"><?= e($profile['email']     ?? '') ?></div>
-                <div class="profile-sidebar__joined">Joined <?= formatDate($profile['joined_at'] ?? '', 'd M Y') ?></div>
-            </div>
-        </div>
-
         <div class="card">
             <div class="card-body" style="padding:.75rem">
                 <nav class="profile-tabs" id="profile-tabs">
@@ -235,15 +238,44 @@ require_once __DIR__ . '/../../partials/header.php';
             </div>
         </div>
 
-        <div class="card">
-            <div class="card-body" style="padding:1rem 1.25rem">
-                <div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:.65rem">Verification</div>
+        <div class="card" style="overflow:hidden">
+            <div style="padding:.8rem 1.1rem;background:linear-gradient(135deg,rgba(74,103,65,.06),rgba(122,154,106,.09));border-bottom:1px solid var(--line)">
+                <div style="font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.09em;color:var(--text-muted);margin-bottom:.55rem">Verification Status</div>
                 <?= verificationBadge($profile['verification_status'] ?? 'pending') ?>
-                <p style="font-size:.76rem;color:var(--text-muted);margin-top:.5rem;line-height:1.5">
-                    Verification is managed by the platform admin. Contact support if you have questions.
+            </div>
+            <div style="padding:.85rem 1.1rem">
+                <p style="font-size:.78rem;color:var(--text-muted);line-height:1.55">
+                    <?php if (($profile['verification_status'] ?? '') === 'verified'): ?>
+                        Your business is verified. You can post food listings.
+                    <?php elseif (($profile['verification_status'] ?? '') === 'pending'): ?>
+                        Under review by the admin team. Complete your profile to speed up approval.
+                    <?php else: ?>
+                        Verification managed by platform admins. Contact support for help.
+                    <?php endif; ?>
                 </p>
             </div>
         </div>
+
+        <!-- Stats mini -->
+        <?php
+            $listStmt = db()->prepare('SELECT COUNT(*) FROM food_listings WHERE business_user_id = ?');
+            $listStmt->execute([$uid]);
+            $totalListings = (int) $listStmt->fetchColumn();
+        ?>
+        <div class="card">
+            <div class="card-body" style="padding:1rem 1.1rem">
+                <div style="font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.09em;color:var(--text-muted);margin-bottom:.75rem">Your Activity</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+                    <span style="font-size:.84rem;color:var(--text-muted)">Total listings</span>
+                    <span style="font-weight:800;color:var(--olive-deep)"><?= $totalListings ?></span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                    <span style="font-size:.84rem;color:var(--text-muted)">Profile</span>
+                    <span style="font-weight:800;color:var(--olive-deep)"><?= $completion ?>%</span>
+                </div>
+            </div>
+        </div>
+
     </aside>
 
     <!-- ── Main Area ── -->
@@ -408,9 +440,15 @@ require_once __DIR__ . '/../../partials/header.php';
                             <label class="form-label" for="current_password">
                                 Current Password <span class="required">*</span>
                             </label>
-                            <input type="password" id="current_password" name="current_password"
-                                   class="form-control <?= isset($pwErrors['current_password']) ? 'is-invalid' : '' ?>"
-                                   autocomplete="current-password" required>
+                            <div class="input-with-btn">
+                                <input type="password" id="current_password" name="current_password"
+                                       class="form-control <?= isset($pwErrors['current_password']) ? 'is-invalid' : '' ?>"
+                                       autocomplete="current-password" required>
+                                <button type="button" class="btn-input-action" data-toggle-pw aria-label="Show password">
+                                    <svg class="icon-eye" viewBox="0 0 20 20" width="15" fill="none"><path d="M1 10s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7z" stroke="currentColor" stroke-width="1.4"/><circle cx="10" cy="10" r="2.5" stroke="currentColor" stroke-width="1.4"/></svg>
+                                    <svg class="icon-eye-off" viewBox="0 0 20 20" width="15" fill="none"><path d="M3 3l14 14M8.5 8.6A2.5 2.5 0 0011.4 11.5M6.3 5.3C4.3 6.5 2.7 8.4 1 10c0 0 3.5 7 9 7 1.6 0 3-.4 4.2-1.1M13.9 13.9C16 12.6 17.5 10.8 19 10c0 0-3.5-7-9-7-1.2 0-2.3.2-3.3.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+                                </button>
+                            </div>
                             <?php if (isset($pwErrors['current_password'])): ?>
                                 <span class="form-error"><?= e($pwErrors['current_password']) ?></span>
                             <?php endif; ?>
@@ -421,9 +459,15 @@ require_once __DIR__ . '/../../partials/header.php';
                                 <label class="form-label" for="new_password">
                                     New Password <span class="required">*</span>
                                 </label>
-                                <input type="password" id="new_password" name="new_password"
-                                       class="form-control <?= isset($pwErrors['new_password']) ? 'is-invalid' : '' ?>"
-                                       autocomplete="new-password" required>
+                                <div class="input-with-btn">
+                                    <input type="password" id="new_password" name="new_password"
+                                           class="form-control <?= isset($pwErrors['new_password']) ? 'is-invalid' : '' ?>"
+                                           autocomplete="new-password" required>
+                                    <button type="button" class="btn-input-action" data-toggle-pw aria-label="Show password">
+                                        <svg class="icon-eye" viewBox="0 0 20 20" width="15" fill="none"><path d="M1 10s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7z" stroke="currentColor" stroke-width="1.4"/><circle cx="10" cy="10" r="2.5" stroke="currentColor" stroke-width="1.4"/></svg>
+                                        <svg class="icon-eye-off" viewBox="0 0 20 20" width="15" fill="none"><path d="M3 3l14 14M8.5 8.6A2.5 2.5 0 0011.4 11.5M6.3 5.3C4.3 6.5 2.7 8.4 1 10c0 0 3.5 7 9 7 1.6 0 3-.4 4.2-1.1M13.9 13.9C16 12.6 17.5 10.8 19 10c0 0-3.5-7-9-7-1.2 0-2.3.2-3.3.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+                                    </button>
+                                </div>
                                 <span class="form-hint">Min 8 characters, 1 letter and 1 number.</span>
                                 <?php if (isset($pwErrors['new_password'])): ?>
                                     <span class="form-error"><?= e($pwErrors['new_password']) ?></span>
@@ -433,9 +477,15 @@ require_once __DIR__ . '/../../partials/header.php';
                                 <label class="form-label" for="confirm_password">
                                     Confirm New Password <span class="required">*</span>
                                 </label>
-                                <input type="password" id="confirm_password" name="confirm_password"
-                                       class="form-control <?= isset($pwErrors['password_confirm']) ? 'is-invalid' : '' ?>"
-                                       autocomplete="new-password" required>
+                                <div class="input-with-btn">
+                                    <input type="password" id="confirm_password" name="confirm_password"
+                                           class="form-control <?= isset($pwErrors['password_confirm']) ? 'is-invalid' : '' ?>"
+                                           autocomplete="new-password" required>
+                                    <button type="button" class="btn-input-action" data-toggle-pw aria-label="Show password">
+                                        <svg class="icon-eye" viewBox="0 0 20 20" width="15" fill="none"><path d="M1 10s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7z" stroke="currentColor" stroke-width="1.4"/><circle cx="10" cy="10" r="2.5" stroke="currentColor" stroke-width="1.4"/></svg>
+                                        <svg class="icon-eye-off" viewBox="0 0 20 20" width="15" fill="none"><path d="M3 3l14 14M8.5 8.6A2.5 2.5 0 0011.4 11.5M6.3 5.3C4.3 6.5 2.7 8.4 1 10c0 0 3.5 7 9 7 1.6 0 3-.4 4.2-1.1M13.9 13.9C16 12.6 17.5 10.8 19 10c0 0-3.5-7-9-7-1.2 0-2.3.2-3.3.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+                                    </button>
+                                </div>
                                 <?php if (isset($pwErrors['password_confirm'])): ?>
                                     <span class="form-error"><?= e($pwErrors['password_confirm']) ?></span>
                                 <?php endif; ?>
