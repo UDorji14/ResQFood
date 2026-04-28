@@ -125,14 +125,23 @@ $pageTitle = 'Edit Listing';
 require_once __DIR__ . '/../../partials/header.php';
 ?>
 
+<div class="breadcrumb">
+    <a href="<?= baseUrl('dashboard.php') ?>">Dashboard</a>
+    <a href="<?= baseUrl('modules/listings/index.php') ?>">My Listings</a>
+    <a href="<?= baseUrl('modules/listings/view.php?id=' . $listingId) ?>"><?= e(truncate($listing['title'], 32)) ?></a>
+    <span>Edit</span>
+</div>
+
 <div class="page-head">
-    <div class="breadcrumb">
-        <a href="<?= baseUrl('dashboard.php') ?>">Dashboard</a> /
-        <a href="<?= baseUrl('modules/listings/index.php') ?>">My Listings</a> /
-        <a href="<?= baseUrl('modules/listings/view.php?id=' . $listingId) ?>"><?= e(truncate($listing['title'], 30)) ?></a> /
-        <span>Edit</span>
+    <div class="page-head__top">
+        <div>
+            <h1>Edit Listing</h1>
+            <p class="text-muted">Update your surplus food post.</p>
+        </div>
+        <span class="status-badge status-badge--<?= statusClass($listing['status']) ?>">
+            <?= statusLabel($listing['status']) ?>
+        </span>
     </div>
-    <h1>Edit Listing</h1>
 </div>
 
 <?php if (!empty($errors['_general'])): ?>
@@ -142,112 +151,218 @@ require_once __DIR__ . '/../../partials/header.php';
 </div>
 <?php endif; ?>
 
-<form method="POST" action="" enctype="multipart/form-data" novalidate>
+<form method="POST" action="" enctype="multipart/form-data" novalidate id="edit-form">
     <?= csrfField() ?>
     <input type="hidden" name="listing_id" value="<?= $listingId ?>">
 
-    <div style="display:grid;grid-template-columns:1fr 320px;gap:1.5rem;align-items:start">
+    <div class="listing-form-grid">
 
-        <div class="card">
-            <div class="card-header"><h3>Listing Details</h3></div>
-            <div class="card-body">
+        <!-- ── LEFT ───────────────────────────────────────────────── -->
+        <div style="display:flex;flex-direction:column;gap:1.1rem">
 
-                <div class="form-group">
-                    <label class="form-label" for="title">Title <span class="required">*</span></label>
-                    <input type="text" id="title" name="title"
-                           class="form-control <?= isset($errors['title']) ? 'is-invalid' : '' ?>"
-                           value="<?= e($old['title']) ?>" maxlength="200" required>
-                    <?php if (isset($errors['title'])): ?><span class="form-error"><?= e($errors['title']) ?></span><?php endif; ?>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label" for="category">Category</label>
-                        <select id="category" name="category" class="form-control">
-                            <option value="">— Select category —</option>
-                            <?php foreach (listingCategoryOptions() as $cat): ?>
-                                <option value="<?= e($cat) ?>" <?= $old['category'] === $cat ? 'selected' : '' ?>><?= e($cat) ?></option>
-                            <?php endforeach; ?>
-                        </select>
+            <div class="card">
+                <div class="card-header">
+                    <div class="form-section-label">
+                        <span class="form-section-label__num">1</span>
+                        Food Details
                     </div>
+                </div>
+                <div class="card-body">
+
                     <div class="form-group">
-                        <label class="form-label">Quantity <span class="required">*</span></label>
-                        <div style="display:flex;gap:.5rem">
-                            <input type="number" name="quantity" step="0.01" min="0.01"
-                                   class="form-control <?= isset($errors['quantity']) ? 'is-invalid' : '' ?>"
-                                   value="<?= e($old['quantity']) ?>" style="flex:1" required>
-                            <select name="unit" class="form-control" style="width:120px">
-                                <?php foreach (listingUnitOptions() as $unit): ?>
-                                    <option value="<?= e($unit) ?>" <?= $old['unit'] === $unit ? 'selected' : '' ?>><?= e($unit) ?></option>
+                        <label class="form-label" for="title">
+                            Listing title <span class="required" aria-hidden="true">*</span>
+                        </label>
+                        <input type="text" id="title" name="title"
+                               class="form-control <?= isset($errors['title']) ? 'is-invalid' : '' ?>"
+                               value="<?= e($old['title']) ?>" maxlength="200" required>
+                        <?php if (isset($errors['title'])): ?>
+                            <span class="form-error"><?= e($errors['title']) ?></span>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="category">Category</label>
+                            <select id="category" name="category" class="form-control">
+                                <option value="">— Select —</option>
+                                <?php foreach (listingCategoryOptions() as $cat): ?>
+                                    <option value="<?= e($cat) ?>" <?= $old['category'] === $cat ? 'selected' : '' ?>>
+                                        <?= e($cat) ?>
+                                    </option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <?php if (isset($errors['quantity'])): ?><span class="form-error"><?= e($errors['quantity']) ?></span><?php endif; ?>
+                        <div class="form-group">
+                            <label class="form-label">Quantity <span class="required" aria-hidden="true">*</span></label>
+                            <div class="qty-row">
+                                <input type="number" name="quantity" step="0.01" min="0.01"
+                                       class="form-control <?= isset($errors['quantity']) ? 'is-invalid' : '' ?>"
+                                       value="<?= e($old['quantity']) ?>" required>
+                                <select name="unit" class="form-control">
+                                    <?php foreach (listingUnitOptions() as $unit): ?>
+                                        <option value="<?= e($unit) ?>" <?= $old['unit'] === $unit ? 'selected' : '' ?>>
+                                            <?= e($unit) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <?php if (isset($errors['quantity'])): ?>
+                                <span class="form-error"><?= e($errors['quantity']) ?></span>
+                            <?php endif; ?>
+                        </div>
                     </div>
-                </div>
 
-                <div class="form-group">
-                    <label class="form-label" for="description">Description</label>
-                    <textarea id="description" name="description" class="form-control" rows="3"><?= e($old['description']) ?></textarea>
-                </div>
+                    <div class="form-group">
+                        <label class="form-label" for="description">Description</label>
+                        <textarea id="description" name="description" class="form-control" rows="4"
+                                  data-autoresize><?= e($old['description']) ?></textarea>
+                    </div>
 
-                <div class="form-group">
-                    <label class="form-label" for="pickup_address">Pickup Address</label>
-                    <input type="text" id="pickup_address" name="pickup_address"
-                           class="form-control" value="<?= e($old['pickup_address']) ?>">
                 </div>
-
             </div>
-        </div>
-
-        <div style="display:flex;flex-direction:column;gap:1rem">
 
             <div class="card">
-                <div class="card-header"><h3>Pickup Window</h3></div>
+                <div class="card-header">
+                    <div class="form-section-label">
+                        <span class="form-section-label__num">2</span>
+                        Pickup Information
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="form-group" style="margin-bottom:0">
+                        <label class="form-label" for="pickup_address">Pickup address</label>
+                        <input type="text" id="pickup_address" name="pickup_address"
+                               class="form-control" value="<?= e($old['pickup_address']) ?>"
+                               placeholder="Leave blank to use business profile address">
+                        <span class="form-hint">Only shown to the person who reserves.</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ── RIGHT ──────────────────────────────────────────────── -->
+        <div style="display:flex;flex-direction:column;gap:1.1rem">
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="form-section-label">
+                        <span class="form-section-label__num">3</span>
+                        Pickup Schedule
+                    </div>
+                </div>
                 <div class="card-body">
                     <div class="form-group">
-                        <label class="form-label" for="pickup_start">Starts <span class="required">*</span></label>
+                        <label class="form-label" for="pickup_start">
+                            Pickup opens <span class="required" aria-hidden="true">*</span>
+                        </label>
                         <input type="datetime-local" id="pickup_start" name="pickup_start"
                                class="form-control <?= isset($errors['pickup_start']) ? 'is-invalid' : '' ?>"
                                value="<?= e(datetimeToInput($old['pickup_start'])) ?>" required>
-                        <?php if (isset($errors['pickup_start'])): ?><span class="form-error"><?= e($errors['pickup_start']) ?></span><?php endif; ?>
+                        <?php if (isset($errors['pickup_start'])): ?>
+                            <span class="form-error"><?= e($errors['pickup_start']) ?></span>
+                        <?php endif; ?>
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="pickup_end">Ends <span class="required">*</span></label>
+                        <label class="form-label" for="pickup_end">
+                            Pickup closes <span class="required" aria-hidden="true">*</span>
+                        </label>
                         <input type="datetime-local" id="pickup_end" name="pickup_end"
                                class="form-control <?= isset($errors['pickup_end']) ? 'is-invalid' : '' ?>"
                                value="<?= e(datetimeToInput($old['pickup_end'])) ?>" required>
-                        <?php if (isset($errors['pickup_end'])): ?><span class="form-error"><?= e($errors['pickup_end']) ?></span><?php endif; ?>
+                        <?php if (isset($errors['pickup_end'])): ?>
+                            <span class="form-error"><?= e($errors['pickup_end']) ?></span>
+                        <?php endif; ?>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label" for="expiry_time">Food expires</label>
+                    <div class="form-group" style="margin-bottom:0">
+                        <label class="form-label" for="expiry_time">
+                            Food expires at
+                            <span class="text-muted" style="font-weight:400;font-size:.8em">(optional)</span>
+                        </label>
                         <input type="datetime-local" id="expiry_time" name="expiry_time"
-                               class="form-control"
+                               class="form-control <?= isset($errors['expiry_time']) ? 'is-invalid' : '' ?>"
                                value="<?= e(datetimeToInput($old['expiry_time'])) ?>">
+                        <?php if (isset($errors['expiry_time'])): ?>
+                            <span class="form-error"><?= e($errors['expiry_time']) ?></span>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
 
+            <!-- Photo section -->
             <div class="card">
-                <div class="card-header"><h3>Add Photo</h3></div>
-                <div class="card-body">
-                    <?php if ($listing['primary_image'] ?? null): ?>
-                    <img src="<?= baseUrl(e($listing['primary_image'])) ?>"
-                         alt="Current photo" style="width:100%;border-radius:var(--r-md);margin-bottom:.75rem">
-                    <?php endif; ?>
-                    <input type="file" name="image" class="form-control" accept="image/jpeg,image/png,image/webp">
-                    <span class="form-hint">Upload a new image to replace the current one.</span>
+                <div class="card-header">
+                    <div class="form-section-label">
+                        <span class="form-section-label__num">4</span>
+                        Photo
+                    </div>
+                </div>
+                <div class="card-body" style="padding-bottom:1.25rem">
+                    <div class="upload-zone <?= ($listing['primary_image'] ?? null) ? 'has-preview' : '' ?>" id="upload-zone">
+                        <input type="file" name="image" id="image-input"
+                               accept="image/jpeg,image/png,image/webp"
+                               aria-label="Replace listing photo">
+                        <img class="upload-zone__preview" id="img-preview"
+                             src="<?= ($listing['primary_image'] ?? null) ? baseUrl(e($listing['primary_image'])) : '' ?>"
+                             alt="Current photo">
+                        <div class="upload-zone__placeholder">
+                            <svg class="upload-zone__icon" viewBox="0 0 48 48" width="40" fill="none">
+                                <rect x="4" y="8" width="40" height="32" rx="4" stroke="currentColor" stroke-width="2"/>
+                                <circle cx="17" cy="20" r="4" stroke="currentColor" stroke-width="1.5"/>
+                                <path d="M4 36l10-10 7 7 7-9 12 12" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                                <path d="M30 12l4-4m0 0l4 4m-4-4v10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <div class="upload-zone__label">Click or drag to upload</div>
+                            <div class="upload-zone__hint">JPG, PNG or WebP &middot; Max 5 MB</div>
+                        </div>
+                        <div class="upload-zone__change-btn" id="change-img-btn"
+                             style="<?= ($listing['primary_image'] ?? null) ? '' : 'display:none' ?>">
+                            <?= ($listing['primary_image'] ?? null) ? 'Replace photo' : 'Change photo' ?>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div>
+            <!-- Actions -->
+            <div style="display:flex;flex-direction:column;gap:.6rem">
                 <button type="submit" class="btn btn-primary btn-block btn-lg">Save Changes</button>
                 <a href="<?= baseUrl('modules/listings/view.php?id=' . $listingId) ?>"
-                   class="btn btn-outline btn-block mt-1">Cancel</a>
+                   class="btn btn-outline btn-block">Cancel</a>
             </div>
 
         </div>
     </div>
 </form>
+
+<script>
+(function () {
+    const zone    = document.getElementById('upload-zone');
+    const input   = document.getElementById('image-input');
+    const preview = document.getElementById('img-preview');
+    const changeBtn = document.getElementById('change-img-btn');
+    if (!zone || !input) return;
+
+    function showPreview(file) {
+        if (!file || !file.type.startsWith('image/')) return;
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            preview.src = e.target.result;
+            zone.classList.add('has-preview');
+            changeBtn.style.display = 'block';
+            changeBtn.textContent = 'Change photo';
+        };
+        reader.readAsDataURL(file);
+    }
+    input.addEventListener('change', function () { if (this.files[0]) showPreview(this.files[0]); });
+    zone.addEventListener('dragover', function (e) { e.preventDefault(); this.classList.add('dragover'); });
+    zone.addEventListener('dragleave', function () { this.classList.remove('dragover'); });
+    zone.addEventListener('drop', function (e) {
+        e.preventDefault(); this.classList.remove('dragover');
+        const file = e.dataTransfer.files[0];
+        if (file) { const dt = new DataTransfer(); dt.items.add(file); input.files = dt.files; showPreview(file); }
+    });
+})();
+</script>
 
 <?php require_once __DIR__ . '/../../partials/footer.php'; ?>

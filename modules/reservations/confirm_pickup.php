@@ -121,79 +121,82 @@ $pageTitle = 'Confirm Pickup';
 require_once __DIR__ . '/../../partials/header.php';
 ?>
 
-<div class="page-head">
-    <div class="breadcrumb">
-        <a href="<?= baseUrl('modules/reservations/index.php') ?>">Reservations</a> / <span>Confirm Pickup</span>
-    </div>
-    <h1>Confirm Pickup</h1>
-    <p class="text-muted">Verify the collection and mark the listing as collected.</p>
+<div class="breadcrumb">
+    <a href="<?= baseUrl('modules/reservations/index.php') ?>">Reservations</a>
+    <span>Confirm Pickup</span>
 </div>
 
-<div style="max-width:680px;margin:0 auto">
+<div class="confirm-screen">
 
-    <!-- Reservation Summary -->
-    <div class="res-card" style="margin-bottom:1.5rem">
-        <div class="res-card__head">
-            <svg viewBox="0 0 20 20" width="18" fill="none"><rect x="3" y="3" width="14" height="14" rx="3" stroke="currentColor" stroke-width="1.5"/><path d="M7 10l2 2 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <h3>Reservation #<?= $reservationId ?></h3>
-            <span class="status-badge status-badge--amber" style="margin-left:auto"><?= statusLabel($reservation['reservation_status']) ?></span>
+    <!-- ── Summary card ────────────────────────────────────── -->
+    <div class="confirm-card" style="margin-bottom:1.25rem">
+        <div class="confirm-card__band">
+            <div class="confirm-card__icon-wrap">
+                <svg viewBox="0 0 24 24" width="28" fill="none">
+                    <rect x="3" y="3" width="18" height="18" rx="4" stroke="currentColor" stroke-width="1.8"/>
+                    <path d="M8 12l3 3 5-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="confirm-card__title">Confirm Pickup</div>
+            <div class="confirm-card__sub">
+                Reservation #<?= $reservationId ?> &middot;
+                <span class="status-badge status-badge--amber" style="vertical-align:middle">
+                    <?= statusLabel($reservation['reservation_status']) ?>
+                </span>
+            </div>
         </div>
-        <div class="res-card__body">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
-                <div>
-                    <div class="res-card__field">
-                        <div class="res-card__label">Listing</div>
-                        <div class="res-card__value">
-                            <a href="<?= baseUrl('modules/listings/view.php?id=' . $reservation['listing_id']) ?>"
-                               style="color:var(--olive)">
-                                <?= e($reservation['title']) ?>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="res-card__field">
-                        <div class="res-card__label">Quantity</div>
-                        <div class="res-card__value"><?= e($reservation['quantity'] . ' ' . $reservation['unit']) ?></div>
-                    </div>
-                    <div class="res-card__field">
-                        <div class="res-card__label">Pickup window</div>
-                        <div class="res-card__value" style="font-size:.85rem">
-                            <?= formatDate($reservation['pickup_start'], 'd M Y, H:i') ?> →
-                            <?= formatDate($reservation['pickup_end'], 'H:i') ?>
-                        </div>
-                    </div>
-                </div>
-                <div>
-                    <div class="res-card__field">
-                        <div class="res-card__label">Reserved by</div>
-                        <div class="res-card__value"><?= e($reservation['reserved_by_name']) ?></div>
-                    </div>
-                    <div class="res-card__field">
-                        <div class="res-card__label">Role</div>
-                        <div class="res-card__value">
-                            <span class="role-badge role-badge--<?= roleBadgeClass($reservation['reserver_role']) ?>">
-                                <?= roleLabel($reservation['reserver_role']) ?>
-                            </span>
-                        </div>
-                    </div>
-                    <div class="res-card__field">
-                        <div class="res-card__label">Email</div>
-                        <div class="res-card__value" style="font-size:.82rem"><?= e($reservation['reserved_by_email']) ?></div>
-                    </div>
+        <div class="confirm-card__body">
+
+            <!-- Listing info row -->
+            <div style="padding:.85rem 1rem;background:rgba(248,244,234,.6);border-radius:var(--r-lg);margin-bottom:1.1rem">
+                <div style="font-size:.7rem;font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:var(--text-light);margin-bottom:.45rem">Listing</div>
+                <a href="<?= baseUrl('modules/listings/view.php?id=' . $reservation['listing_id']) ?>"
+                   style="font-weight:700;font-size:1rem;color:var(--olive);text-decoration:none;display:block;margin-bottom:.25rem">
+                    <?= e($reservation['title']) ?>
+                </a>
+                <div style="display:flex;gap:1.25rem;flex-wrap:wrap;font-size:.81rem;color:var(--text-muted)">
+                    <span><strong style="color:var(--text-mid)">Qty:</strong> <?= e($reservation['quantity'] . ' ' . $reservation['unit']) ?></span>
+                    <span><strong style="color:var(--text-mid)">Window:</strong> <?= formatDate($reservation['pickup_start'], 'd M, H:i') ?> &ndash; <?= formatDate($reservation['pickup_end'], 'H:i') ?></span>
                 </div>
             </div>
+
+            <!-- Reserver info row -->
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;padding:.85rem 1rem;border:1px solid var(--line);border-radius:var(--r-lg);margin-bottom:1.1rem">
+                <div>
+                    <div style="font-size:.7rem;font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:var(--text-light);margin-bottom:.3rem">Reserved By</div>
+                    <div style="font-weight:700;font-size:.93rem;color:var(--text-dark)"><?= e($reservation['reserved_by_name']) ?></div>
+                    <div style="font-size:.79rem;color:var(--text-muted)"><?= e($reservation['reserved_by_email']) ?></div>
+                </div>
+                <span class="role-badge role-badge--<?= roleBadgeClass($reservation['reserver_role']) ?>">
+                    <?= roleLabel($reservation['reserver_role']) ?>
+                </span>
+            </div>
+
+            <!-- The actual code (for reference) -->
+            <div class="pickup-banner" style="margin-bottom:1.25rem">
+                <div class="pickup-banner__label">Customer's Pickup Code</div>
+                <div class="pickup-banner__code" data-copy title="Click to copy">
+                    <?= e($reservation['pickup_code']) ?>
+                </div>
+                <div class="pickup-banner__hint">
+                    The customer should present this code. Verify it matches before confirming.
+                </div>
+            </div>
+
         </div>
     </div>
 
-    <!-- Confirmation Form -->
+    <!-- ── Confirmation form ─────────────────────────────────── -->
     <div class="card">
-        <div class="card-header"><h3>Confirm Collection</h3></div>
+        <div class="card-header">
+            <h3>Verify &amp; Confirm</h3>
+        </div>
         <div class="card-body">
 
-            <div class="notice notice--info" style="margin-bottom:1.5rem">
+            <div class="notice notice--info" style="margin-bottom:1.25rem">
                 <svg viewBox="0 0 20 20" width="18" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M10 9v5m0-7h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-                <div class="notice__body">
-                    Ask the customer to show their pickup code. You may enter it below to verify,
-                    or click <strong>Confirm without code</strong> to proceed on good faith.
+                <div class="notice__body" style="font-size:.84rem">
+                    Ask the customer to show their code. Enter it below to verify — or leave blank and confirm on good faith.
                 </div>
             </div>
 
@@ -203,31 +206,42 @@ require_once __DIR__ . '/../../partials/header.php';
 
                 <div class="form-group">
                     <label class="form-label" for="pickup_code">
-                        Customer's Pickup Code
-                        <span class="text-muted" style="font-weight:400">(optional — leave blank to skip verification)</span>
+                        Enter Customer Code
+                        <span class="text-muted" style="font-weight:400;font-size:.8em">(optional)</span>
                     </label>
                     <input type="text" id="pickup_code" name="pickup_code"
                            class="form-control"
-                           style="font-size:1.2rem;font-family:'Courier New',monospace;letter-spacing:.15em;max-width:220px;text-transform:uppercase"
-                           placeholder="e.g. A3B9F2"
-                           maxlength="8" autocomplete="off">
-                    <span class="form-hint">
-                        Correct code:
-                        <span class="pickup-code" style="font-size:1rem;padding:.25rem .75rem"><?= e($reservation['pickup_code']) ?></span>
-                        (shown here for your reference)
-                    </span>
+                           style="font-size:1.35rem;font-family:'Courier New',monospace;letter-spacing:.18em;max-width:200px;text-transform:uppercase;text-align:center;font-weight:700"
+                           placeholder="______"
+                           maxlength="8" autocomplete="off" spellcheck="false">
+                    <span class="form-hint">Leave blank to confirm without code verification.</span>
                 </div>
 
-                <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:1.5rem">
-                    <button type="submit" class="btn btn-primary btn-lg">
+                <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-top:1.4rem">
+                    <button type="submit" class="btn btn-primary btn-lg"
+                            style="flex:1;min-width:160px">
+                        <svg viewBox="0 0 18 18" width="16" fill="none" style="margin-right:.4rem"><path d="M3 9l4 4 8-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                         Confirm Pickup
                     </button>
-                    <a href="<?= baseUrl('modules/reservations/index.php') ?>" class="btn btn-outline">Cancel</a>
+                    <a href="<?= baseUrl('modules/reservations/index.php') ?>"
+                       class="btn btn-outline">Cancel</a>
                 </div>
             </form>
 
         </div>
     </div>
+
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const codeInput = document.getElementById('pickup_code');
+    if (codeInput) {
+        codeInput.addEventListener('input', function () {
+            this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        });
+    }
+});
+</script>
 
 <?php require_once __DIR__ . '/../../partials/footer.php'; ?>

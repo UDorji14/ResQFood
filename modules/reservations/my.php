@@ -47,22 +47,31 @@ $tabs = [
 ];
 
 $pageTitle = 'My Reservations';
+$activeReservations = array_filter($reservations, fn($r) => $r['reservation_status'] === 'reserved');
+$pastReservations   = array_filter($reservations, fn($r) => $r['reservation_status'] !== 'reserved');
 require_once __DIR__ . '/../../partials/header.php';
 ?>
+
+<div class="breadcrumb">
+    <a href="<?= baseUrl('dashboard.php') ?>">Dashboard</a>
+    <span>My Reservations</span>
+</div>
 
 <div class="page-head">
     <div class="page-head__top">
         <div>
-            <div class="breadcrumb"><a href="<?= baseUrl('dashboard.php') ?>">Dashboard</a> / <span>My Reservations</span></div>
             <h1>My Reservations</h1>
-            <p class="text-muted">Track your reserved food pickups.</p>
+            <p class="text-muted">Track your food pickups and access your codes.</p>
         </div>
-        <a href="<?= baseUrl('modules/listings/browse.php') ?>" class="btn btn-primary">Browse Listings</a>
+        <a href="<?= baseUrl('modules/listings/browse.php') ?>" class="btn btn-primary">
+            <svg viewBox="0 0 18 18" width="14" fill="none" style="margin-right:.3rem"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.5"/><path d="M12.5 12.5L16 16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            Browse Listings
+        </a>
     </div>
 </div>
 
-<!-- Status tabs -->
-<nav class="tab-nav">
+<!-- Status filter tabs -->
+<nav class="tab-nav" style="margin-bottom:1.5rem">
     <?php foreach ($tabs as $key => $label): ?>
     <a href="?status=<?= e($key) ?>"
        class="tab-nav__item <?= $statusFilter === $key ? 'active' : '' ?>">
@@ -75,80 +84,109 @@ require_once __DIR__ . '/../../partials/header.php';
 </nav>
 
 <?php if (empty($reservations)): ?>
+
 <div class="card">
     <div class="empty-state">
-        <svg viewBox="0 0 64 64" width="56" fill="none">
-            <rect x="10" y="14" width="44" height="36" rx="4" stroke="#4a6741" stroke-width="2"/>
-            <path d="M22 30h20M22 37h14" stroke="#4a6741" stroke-width="1.5" stroke-linecap="round"/>
-            <path d="M28 14v-3a2 2 0 012-2h4a2 2 0 012 2v3" stroke="#4a6741" stroke-width="1.5"/>
+        <svg viewBox="0 0 80 80" width="68" fill="none">
+            <rect x="12" y="16" width="56" height="48" rx="6" stroke="#4a6741" stroke-width="2"/>
+            <path d="M28 16v-5a3 3 0 013-3h10a3 3 0 013 3v5" stroke="#4a6741" stroke-width="1.8"/>
+            <path d="M26 38h28M26 48h20" stroke="#7a9a6a" stroke-width="1.8" stroke-linecap="round"/>
         </svg>
-        <p>No reservations<?= $statusFilter !== 'all' ? ' with status "' . e($tabs[$statusFilter] ?? $statusFilter) . '"' : '' ?> yet.</p>
-        <a href="<?= baseUrl('modules/listings/browse.php') ?>" class="btn btn-primary">Browse Available Listings</a>
+        <h3 style="font-size:1.1rem;font-weight:700;color:var(--text-dark);margin-bottom:.3rem">
+            <?= $statusFilter !== 'all' ? 'No ' . e($tabs[$statusFilter] ?? $statusFilter) . ' reservations' : 'No reservations yet' ?>
+        </h3>
+        <p style="color:var(--text-muted);font-size:.87rem">
+            <?= $statusFilter !== 'all' ? 'Try a different filter.' : 'Browse available listings and reserve your first pickup.' ?>
+        </p>
+        <a href="<?= baseUrl('modules/listings/browse.php') ?>" class="btn btn-primary">Browse Food Listings</a>
     </div>
 </div>
 
 <?php else: ?>
-<div style="display:flex;flex-direction:column;gap:1rem">
-    <?php foreach ($reservations as $r): ?>
-    <div class="card" style="overflow:hidden">
-        <div style="display:grid;grid-template-columns:1fr auto;align-items:start;gap:1rem;padding:1.25rem 1.5rem">
 
-            <!-- Left: listing + business info -->
-            <div>
-                <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;margin-bottom:.5rem">
+<?php
+// When showing "all", render active first with a section heading, then past
+$showSections = ($statusFilter === 'all' && !empty($activeReservations) && !empty($pastReservations));
+?>
+
+<!-- ── Active Reservations ──────────────────────────────────── -->
+<?php if ($statusFilter === 'all' && !empty($activeReservations)): ?>
+<div class="section-heading" style="margin-bottom:1rem">
+    <span class="section-heading__label">Active</span>
+    <span class="status-badge status-badge--green" style="font-size:.72rem"><?= count($activeReservations) ?></span>
+    <div class="section-heading__line"></div>
+</div>
+<?php endif; ?>
+
+<?php
+$toRender = ($statusFilter === 'all') ? $activeReservations : $reservations;
+if ($statusFilter !== 'all') $toRender = $reservations;
+?>
+
+<?php if ($statusFilter !== 'all' && empty($activeReservations) && $statusFilter === 'reserved'): ?>
+    <!-- Handled by the global empty state above -->
+<?php endif; ?>
+
+<?php if (!empty($toRender) || $statusFilter !== 'all'): ?>
+<div class="res-feed">
+    <?php foreach (($statusFilter === 'all' ? $activeReservations : $reservations) as $r): ?>
+    <?php $isActive = $r['reservation_status'] === 'reserved'; ?>
+    <div class="res-item <?= $isActive ? 'res-item--active' : 'res-item--' . e($r['reservation_status']) ?>">
+
+        <div class="res-item__body">
+
+            <!-- ── Left: info ────────────────────────────────── -->
+            <div style="min-width:0">
+                <div class="res-item__meta">
                     <span class="status-badge status-badge--<?= statusClass($r['reservation_status']) ?>">
                         <?= statusLabel($r['reservation_status']) ?>
                     </span>
                     <?php if ($r['category']): ?>
-                    <span style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted)"><?= e($r['category']) ?></span>
+                    <span style="font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text-light)">
+                        <?= e($r['category']) ?>
+                    </span>
                     <?php endif; ?>
                 </div>
-                <a href="<?= baseUrl('modules/listings/view.php?id=' . $r['listing_id']) ?>"
-                   style="font-size:1.05rem;font-weight:700;color:var(--olive);text-decoration:none">
+                <a class="res-item__title"
+                   href="<?= baseUrl('modules/listings/view.php?id=' . $r['listing_id']) ?>">
                     <?= e($r['title']) ?>
                 </a>
-                <div style="font-size:.82rem;color:var(--text-muted);margin-top:.3rem">
+                <div class="res-item__biz">
                     <?= e($r['business_name'] ?? '—') ?>
-                    <?php if ($r['business_city']): ?> &middot; <?= e($r['business_city']) ?><?php endif; ?>
+                    <?php if ($r['business_city']): ?>&nbsp;&middot;&nbsp;<?= e($r['business_city']) ?><?php endif; ?>
                 </div>
-                <div style="display:flex;gap:1.5rem;flex-wrap:wrap;margin-top:.65rem;font-size:.82rem;color:var(--text-muted)">
-                    <span>
-                        <strong style="color:var(--text-mid)">Quantity:</strong>
-                        <?= e($r['quantity'] . ' ' . $r['unit']) ?>
-                    </span>
-                    <span>
-                        <strong style="color:var(--text-mid)">Pickup:</strong>
-                        <?= formatDate($r['pickup_start'], 'd M H:i') ?> – <?= formatDate($r['pickup_end'], 'H:i') ?>
-                    </span>
-                    <span>
-                        <strong style="color:var(--text-mid)">Reserved:</strong>
-                        <?= formatDate($r['reserved_at'], 'd M Y, H:i') ?>
-                    </span>
+                <div class="res-item__facts">
+                    <span><strong>Qty:</strong> <?= e($r['quantity'] . ' ' . $r['unit']) ?></span>
+                    <span><strong>Pickup:</strong> <?= formatDate($r['pickup_start'], 'd M, H:i') ?> &ndash; <?= formatDate($r['pickup_end'], 'H:i') ?></span>
+                    <span><strong>Reserved:</strong> <?= formatDate($r['reserved_at'], 'd M Y') ?></span>
                     <?php if ($r['collected_at']): ?>
-                    <span>
-                        <strong style="color:var(--text-mid)">Collected:</strong>
-                        <?= formatDate($r['collected_at'], 'd M Y, H:i') ?>
-                    </span>
+                    <span><strong>Collected:</strong> <?= formatDate($r['collected_at'], 'd M Y') ?></span>
                     <?php endif; ?>
                 </div>
             </div>
 
-            <!-- Right: pickup code + actions -->
-            <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:.75rem;flex-shrink:0">
-                <?php if ($r['reservation_status'] === 'reserved'): ?>
-                <div style="text-align:center">
-                    <div style="font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);margin-bottom:.3rem">Pickup Code</div>
-                    <?= pickupCodeBadge($r['pickup_code']) ?>
+            <!-- ── Right: code + action ──────────────────────── -->
+            <div class="res-item__right">
+                <?php if ($isActive): ?>
+                <div class="pickup-code-card" data-copy title="Click to copy code">
+                    <div class="pickup-code-card__label">Pickup Code</div>
+                    <div class="pickup-code-card__code"><?= e($r['pickup_code']) ?></div>
+                    <div class="pickup-code-card__hint">Tap to copy</div>
+                </div>
+                <?php elseif ($r['reservation_status'] === 'collected'): ?>
+                <div style="display:flex;align-items:center;gap:.4rem;font-size:.78rem;font-weight:700;color:#3d6b34;background:rgba(74,103,65,.08);padding:.4rem .75rem;border-radius:var(--r-pill);border:1px solid rgba(74,103,65,.2)">
+                    <svg viewBox="0 0 14 14" width="12" fill="none"><path d="M2.5 7l3 3 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    Collected
                 </div>
                 <?php endif; ?>
 
                 <?php if (isCancellable($r['reservation_status'])): ?>
                 <form method="POST" action="<?= baseUrl('modules/reservations/cancel.php') ?>"
-                      onsubmit="return confirm('Cancel this reservation? The listing will become available again.')">
+                      data-confirm="Cancel this reservation? The listing will become available again.">
                     <input type="hidden" name="reservation_id" value="<?= $r['id'] ?>">
                     <input type="hidden" name="csrf_token" value="<?= e(csrfToken()) ?>">
                     <button type="submit" class="btn btn-sm btn-outline"
-                            style="color:var(--terra);border-color:rgba(181,96,74,.4)">
+                            style="color:var(--terra);border-color:rgba(181,96,74,.35)">
                         Cancel
                     </button>
                 </form>
@@ -158,15 +196,67 @@ require_once __DIR__ . '/../../partials/header.php';
         </div>
 
         <!-- Address bar -->
-        <?php if ($r['pickup_address']): ?>
-        <div style="padding:.65rem 1.5rem;border-top:1px solid var(--line);background:rgba(248,244,234,.5);font-size:.8rem;color:var(--text-muted)">
-            <svg viewBox="0 0 14 14" width="12" fill="none" style="vertical-align:middle;margin-right:.3rem"><circle cx="7" cy="6" r="3" stroke="currentColor" stroke-width="1.2"/><path d="M7 11c-3 0-5-2-5-5a5 5 0 0110 0c0 3-2 5-5 5z" stroke="currentColor" stroke-width="1.2"/></svg>
+        <?php if (!empty($r['pickup_address'])): ?>
+        <div class="res-item__address">
+            <svg viewBox="0 0 14 14" width="11" fill="none"><circle cx="7" cy="5.5" r="2.5" stroke="currentColor" stroke-width="1.2"/><path d="M7 11C4 11 2.5 9 2.5 6.5a4.5 4.5 0 019 0C11.5 9 10 11 7 11z" stroke="currentColor" stroke-width="1.2"/></svg>
             <?= e($r['pickup_address']) ?>
         </div>
         <?php endif; ?>
+
     </div>
     <?php endforeach; ?>
 </div>
+<?php endif; ?>
+
+<!-- ── Past Reservations ────────────────────────────────────── -->
+<?php if ($showSections && !empty($pastReservations)): ?>
+<div class="section-heading" style="margin-top:2rem;margin-bottom:1rem">
+    <span class="section-heading__label">History</span>
+    <div class="section-heading__line"></div>
+</div>
+<div class="res-feed">
+    <?php foreach ($pastReservations as $r): ?>
+    <div class="res-item res-item--<?= e($r['reservation_status']) ?>">
+        <div class="res-item__body">
+            <div style="min-width:0">
+                <div class="res-item__meta">
+                    <span class="status-badge status-badge--<?= statusClass($r['reservation_status']) ?>">
+                        <?= statusLabel($r['reservation_status']) ?>
+                    </span>
+                    <?php if ($r['category']): ?>
+                    <span style="font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text-light)"><?= e($r['category']) ?></span>
+                    <?php endif; ?>
+                </div>
+                <a class="res-item__title"
+                   href="<?= baseUrl('modules/listings/view.php?id=' . $r['listing_id']) ?>">
+                    <?= e($r['title']) ?>
+                </a>
+                <div class="res-item__biz">
+                    <?= e($r['business_name'] ?? '—') ?>
+                    <?php if ($r['business_city']): ?>&nbsp;&middot;&nbsp;<?= e($r['business_city']) ?><?php endif; ?>
+                </div>
+                <div class="res-item__facts">
+                    <span><strong>Qty:</strong> <?= e($r['quantity'] . ' ' . $r['unit']) ?></span>
+                    <span><strong>Reserved:</strong> <?= formatDate($r['reserved_at'], 'd M Y') ?></span>
+                    <?php if ($r['collected_at']): ?>
+                    <span><strong>Collected:</strong> <?= formatDate($r['collected_at'], 'd M Y') ?></span>
+                    <?php endif; ?>
+                </div>
+            </div>
+            <div class="res-item__right">
+                <?php if ($r['reservation_status'] === 'collected'): ?>
+                <div style="display:flex;align-items:center;gap:.4rem;font-size:.78rem;font-weight:700;color:#3d6b34;background:rgba(74,103,65,.08);padding:.4rem .75rem;border-radius:var(--r-pill);border:1px solid rgba(74,103,65,.2)">
+                    <svg viewBox="0 0 14 14" width="12" fill="none"><path d="M2.5 7l3 3 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    Collected
+                </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+    <?php endforeach; ?>
+</div>
+<?php endif; ?>
+
 <?php endif; ?>
 
 <?php require_once __DIR__ . '/../../partials/footer.php'; ?>

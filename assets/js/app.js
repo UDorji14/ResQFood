@@ -299,7 +299,7 @@
                 });
             }, { threshold: 0.08, rootMargin: '0px 0px -30px 0px' });
 
-            $$('.stat-card, .action-card, .listing-card').forEach(el => {
+            $$('.stat-card, .action-card, .listing-card, .res-item').forEach(el => {
                 el.style.opacity  = '0';
                 el.style.transform = 'translateY(10px)';
                 el.style.transition = 'opacity 350ms ease, transform 350ms ease';
@@ -316,7 +316,7 @@
         document.head.appendChild(styleTag);
 
         // Auto-resize textarea to fit content
-        $$('textarea.auto-resize').forEach(ta => {
+        $$('textarea.auto-resize, textarea[data-autoresize]').forEach(ta => {
             function resize() {
                 ta.style.height = 'auto';
                 ta.style.height = ta.scrollHeight + 'px';
@@ -359,16 +359,30 @@
             });
         });
 
-        // Copy-to-clipboard for pickup codes
-        $$('.pickup-code[data-copy]').forEach(el => {
+        // Copy-to-clipboard for pickup codes (old + new selectors)
+        $$('.pickup-code[data-copy], .pickup-banner__code, .pickup-code-card__code, [data-copy]').forEach(el => {
             el.style.cursor = 'pointer';
-            el.title = 'Click to copy';
+            if (!el.title) el.title = 'Click to copy';
             on(el, 'click', function () {
-                navigator.clipboard?.writeText(this.textContent.trim()).then(() => {
+                const text = this.textContent.trim();
+                if (!navigator.clipboard) return;
+                navigator.clipboard.writeText(text).then(() => {
                     const orig = this.textContent;
                     this.textContent = 'Copied!';
-                    setTimeout(() => { this.textContent = orig; }, 1500);
+                    this.style.transition = 'color .15s';
+                    this.style.color = 'var(--olive)';
+                    setTimeout(() => {
+                        this.textContent = orig;
+                        this.style.color = '';
+                    }, 1600);
                 });
+            });
+        });
+
+        // Confirm dialogs on forms with data-confirm attribute
+        $$('form[data-confirm]').forEach(form => {
+            on(form, 'submit', function (e) {
+                if (!confirm(this.dataset.confirm)) e.preventDefault();
             });
         });
 
