@@ -152,25 +152,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $pageTitle = 'Edit Listing';
 require_once __DIR__ . '/../../partials/header.php';
+require_once __DIR__ . '/../../partials/business_shell.php';
+$actions = '<a href="' . baseUrl('modules/listings/view.php?id=' . $listingId) . '" class="btn btn-outline">View Listing</a>';
+renderBusinessShellStart('post', 'Edit Listing', 'Update food details, quantities, pickup schedule, and media.', $actions);
 ?>
-
-<div class="breadcrumb">
-    <a href="<?= baseUrl('dashboard.php') ?>">Dashboard</a>
-    <a href="<?= baseUrl('modules/listings/index.php') ?>">My Listings</a>
-    <a href="<?= baseUrl('modules/listings/view.php?id=' . $listingId) ?>"><?= e(truncate($listing['title'], 32)) ?></a>
-    <span>Edit</span>
-</div>
-
-<div class="page-head">
-    <div class="page-head__top">
-        <div>
-            <h1>Edit Listing</h1>
-            <p class="text-muted">Update your surplus food post.</p>
-        </div>
-        <span class="status-badge status-badge--<?= statusClass($listing['status']) ?>">
-            <?= statusLabel($listing['status']) ?>
-        </span>
-    </div>
+<div style="margin-bottom:1rem">
+    <span class="status-badge status-badge--<?= statusClass($listing['status']) ?>"><?= statusLabel($listing['status']) ?></span>
 </div>
 
 <?php if (!empty($errors['_general'])): ?>
@@ -224,7 +211,7 @@ require_once __DIR__ . '/../../partials/header.php';
                         <div class="form-group">
                             <label class="form-label" for="category">Category</label>
                             <select id="category" name="category" class="form-control">
-                                <option value="">— Select —</option>
+                                <option value="">- Select -</option>
                                 <?php foreach (listingCategoryOptions() as $cat): ?>
                                     <option value="<?= e($cat) ?>" <?= $old['category'] === $cat ? 'selected' : '' ?>>
                                         <?= e($cat) ?>
@@ -404,4 +391,5 @@ require_once __DIR__ . '/../../partials/header.php';
 })();
 </script>
 
+<?php renderBusinessShellEnd(); ?>
 <?php require_once __DIR__ . '/../../partials/footer.php'; ?>

@@ -56,23 +56,27 @@ $tabs = [
 
 $pageTitle = 'Incoming Reservations';
 require_once __DIR__ . '/../../partials/header.php';
+if (currentUserRole() === 'business') {
+    require_once __DIR__ . '/../../partials/business_shell.php';
+    $actions = '<a href="' . baseUrl('modules/listings/index.php') . '" class="btn btn-outline">My Listings</a>';
+    renderBusinessShellStart('reservations', 'Reservations', 'Monitor incoming reservations, verify pickups, and keep operations moving.', $actions);
+}
 ?>
-
+<?php if (currentUserRole() !== 'business'): ?>
 <div class="page-head">
     <div class="page-head__top">
         <div>
-            <div class="breadcrumb"><a href="<?= baseUrl('dashboard.php') ?>">Dashboard</a> / <span>Reservations</span></div>
             <h1>Incoming Reservations</h1>
-            <p class="text-muted">
-                Manage pickups across all your listings.
-                <?php if ($listingFilter > 0): ?>
-                    &mdash; <a href="<?= baseUrl('modules/reservations/index.php') ?>">Show all listings</a>
-                <?php endif; ?>
-            </p>
+            <p class="text-muted">Manage pickups across all listings.</p>
         </div>
-        <a href="<?= baseUrl('modules/listings/index.php') ?>" class="btn btn-outline">My Listings</a>
     </div>
 </div>
+<?php endif; ?>
+<?php if ($listingFilter > 0): ?>
+<div class="notice notice--info">
+    <div class="notice__body">Showing reservations for one listing. <a href="<?= baseUrl('modules/reservations/index.php') ?>">Clear filter</a></div>
+</div>
+<?php endif; ?>
 
 <!-- Status tabs -->
 <nav class="tab-nav">
@@ -169,4 +173,5 @@ require_once __DIR__ . '/../../partials/header.php';
 </div>
 <?php endif; ?>
 
+<?php if (currentUserRole() === 'business') renderBusinessShellEnd(); ?>
 <?php require_once __DIR__ . '/../../partials/footer.php'; ?>

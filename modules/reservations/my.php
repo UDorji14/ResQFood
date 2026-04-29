@@ -50,25 +50,21 @@ $pageTitle = 'My Reservations';
 $activeReservations = array_filter($reservations, fn($r) => $r['reservation_status'] === 'reserved');
 $pastReservations   = array_filter($reservations, fn($r) => $r['reservation_status'] !== 'reserved');
 require_once __DIR__ . '/../../partials/header.php';
+if (currentUserRole() === 'general_user') {
+    require_once __DIR__ . '/../../partials/user_shell.php';
+    $actions = '<a href="' . baseUrl('modules/listings/browse.php') . '" class="btn btn-primary">Browse Listings</a>';
+    renderUserShellStart('reservations', 'My Reservations', 'Track active pickups, codes, and reservation history.', $actions);
+} elseif (currentUserRole() === 'charity') {
+    require_once __DIR__ . '/../../partials/charity_shell.php';
+    $actions = '<a href="' . baseUrl('modules/listings/browse.php') . '" class="btn btn-primary">Browse Listings</a>'
+        . '<a href="' . baseUrl('modules/reports/index.php') . '" class="btn btn-outline">Reports</a>';
+    renderCharityShellStart('reservations', 'My Collections', 'Track your charity pickups, access codes, and review collection history.', $actions);
+}
 ?>
-
-<div class="breadcrumb">
-    <a href="<?= baseUrl('dashboard.php') ?>">Dashboard</a>
-    <span>My Reservations</span>
-</div>
-
-<div class="page-head">
-    <div class="page-head__top">
-        <div>
-            <h1>My Reservations</h1>
-            <p class="text-muted">Track your food pickups and access your codes.</p>
-        </div>
-        <a href="<?= baseUrl('modules/listings/browse.php') ?>" class="btn btn-primary">
-            <svg viewBox="0 0 18 18" width="14" fill="none" style="margin-right:.3rem"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.5"/><path d="M12.5 12.5L16 16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-            Browse Listings
-        </a>
-    </div>
-</div>
+<?php if (!in_array(currentUserRole(), ['general_user', 'charity'], true)): ?>
+<div class="breadcrumb"><a href="<?= baseUrl('dashboard.php') ?>">Dashboard</a><span>My Reservations</span></div>
+<div class="page-head"><div class="page-head__top"><div><h1>My Reservations</h1><p class="text-muted">Track your food pickups and access your codes.</p></div></div></div>
+<?php endif; ?>
 
 <!-- Status filter tabs -->
 <nav class="tab-nav" style="margin-bottom:1.5rem">
@@ -152,7 +148,7 @@ if ($statusFilter !== 'all') $toRender = $reservations;
                     <?= e($r['title']) ?>
                 </a>
                 <div class="res-item__biz">
-                    <?= e($r['business_name'] ?? '—') ?>
+                    <?= e($r['business_name'] ?? '-') ?>
                     <?php if ($r['business_city']): ?>&nbsp;&middot;&nbsp;<?= e($r['business_city']) ?><?php endif; ?>
                 </div>
                 <div class="res-item__facts">
@@ -235,7 +231,7 @@ if ($statusFilter !== 'all') $toRender = $reservations;
                     <?= e($r['title']) ?>
                 </a>
                 <div class="res-item__biz">
-                    <?= e($r['business_name'] ?? '—') ?>
+                    <?= e($r['business_name'] ?? '-') ?>
                     <?php if ($r['business_city']): ?>&nbsp;&middot;&nbsp;<?= e($r['business_city']) ?><?php endif; ?>
                 </div>
                 <div class="res-item__facts">
@@ -265,4 +261,8 @@ if ($statusFilter !== 'all') $toRender = $reservations;
 
 <?php endif; ?>
 
+<?php
+if (currentUserRole() === 'general_user') renderUserShellEnd();
+if (currentUserRole() === 'charity') renderCharityShellEnd();
+?>
 <?php require_once __DIR__ . '/../../partials/footer.php'; ?>

@@ -145,223 +145,103 @@ if ($role === 'business') {
 
 $pageTitle = 'Dashboard';
 require_once __DIR__ . '/partials/header.php';
+if ($role === 'business') {
+    require_once __DIR__ . '/partials/business_shell.php';
+} elseif ($role === 'general_user') {
+    require_once __DIR__ . '/partials/user_shell.php';
+} elseif ($role === 'charity') {
+    require_once __DIR__ . '/partials/charity_shell.php';
+}
 ?>
 
 <?php /* ════════════════════════════════════════════════════════
        BUSINESS DASHBOARD
 ════════════════════════════════════════════════════════ */ ?>
 <?php if ($role === 'business'): ?>
+<?php
+$dashboardActions = '<a href="' . baseUrl('modules/reservations/index.php') . '" class="btn btn-outline">View Reservations</a>'
+    . '<a href="' . baseUrl('modules/listings/create.php') . '" class="btn btn-primary">Post New Listing</a>';
+renderBusinessShellStart('dashboard', 'Business Dashboard', $greeting . ', ' . currentUserName() . '. Here is your operations snapshot for ' . date('d M Y') . '.', $dashboardActions);
+?>
 
-<!-- Welcome banner -->
-<div class="dash-welcome dash-welcome--business">
-    <div class="dash-welcome__inner">
-        <div class="dash-welcome__text">
-            <div class="dash-welcome__eyebrow">
-                <span class="role-badge role-badge--light">Business Account</span>
-                <span class="dash-welcome__date"><?= date('l, d F Y') ?></span>
-            </div>
-            <div class="dash-welcome__greeting"><?= $greeting ?>, <?= e(currentUserName()) ?></div>
-            <p class="dash-welcome__sub">
-                <?php if ($stats['active'] > 0): ?>
-                    You have <strong style="color:#fff"><?= $stats['active'] ?> active listing<?= $stats['active'] !== 1 ? 's' : '' ?></strong> available to the community right now.
-                <?php else: ?>
-                    Share your surplus food — post a listing to get started.
-                <?php endif; ?>
-            </p>
-        </div>
-        <a href="<?= baseUrl('modules/listings/create.php') ?>" class="dash-welcome__cta">
-            <svg viewBox="0 0 18 18" width="14" fill="none"><path d="M9 4v10M4 9h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-            Post New Listing
-        </a>
-    </div>
+<div class="biz-snapshot">
+    <article class="biz-snapshot__lead">
+        <p class="biz-kicker">Operations Snapshot</p>
+        <h2><?= (int) $stats['active'] ?> listings currently available</h2>
+        <p><?= (int) $stats['reserved'] ?> pickups are waiting confirmation and <?= (int) $stats['collected'] ?> have been completed.</p>
+    </article>
+    <article class="biz-snapshot__metric"><span>Total Listings</span><strong><?= (int) $stats['total'] ?></strong></article>
+    <article class="biz-snapshot__metric"><span>Pending Pickups</span><strong><?= (int) $stats['reserved'] ?></strong></article>
+    <article class="biz-snapshot__metric"><span>Completed</span><strong><?= (int) $stats['collected'] ?></strong></article>
 </div>
 
-<!-- Notices -->
-<?php if (($profile['verification_status'] ?? '') === 'pending'): ?>
+<?php if (($profile['verification_status'] ?? '') !== 'verified'): ?>
 <div class="notice notice--warning">
     <svg viewBox="0 0 20 20" width="18" fill="none"><path d="M10 3L2 17h16L10 3z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M10 9v4m0 2h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
     <div class="notice__body">
-        <strong>Verification pending</strong>
-        Your business is awaiting admin review. Complete your profile to speed up the process.
-        <a href="<?= baseUrl('modules/profile/business_profile.php') ?>">Complete profile →</a>
-    </div>
-</div>
-<?php elseif (($profile['verification_status'] ?? '') === 'rejected'): ?>
-<div class="notice notice--danger">
-    <svg viewBox="0 0 20 20" width="18" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M7 7l6 6M13 7l-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-    <div class="notice__body">
-        <strong>Verification rejected</strong>
-        Update your profile with accurate details.
-        <a href="<?= baseUrl('modules/profile/business_profile.php') ?>">Update profile →</a>
+        <strong>Profile verification is <?= e($profile['verification_status'] ?? 'pending') ?></strong>
+        Keep account details complete to avoid delays in listing approvals.
+        <a href="<?= baseUrl('modules/profile/business_profile.php') ?>">Review profile</a>
     </div>
 </div>
 <?php endif; ?>
 
-<?php if (isset($completion) && $completion < 100): ?>
-<div class="completion-strip">
-    <span class="completion-strip__label">Profile complete</span>
-    <div class="completion-strip__bar"><?= profileProgressBar($completion) ?></div>
-    <span class="completion-strip__pct"><?= $completion ?>%</span>
-    <a href="<?= baseUrl('modules/profile/business_profile.php') ?>" class="btn btn-sm btn-outline">Edit Profile</a>
-</div>
-<?php endif; ?>
-
-<!-- Stats -->
-<div class="stat-grid">
-    <div class="stat-card stat-card--olive">
-        <div class="stat-card__icon-box"><svg viewBox="0 0 20 20" width="18" fill="none"><rect x="3" y="5" width="14" height="12" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M7 5V4a1 1 0 012 0v1M11 5V4a1 1 0 012 0v1" stroke="currentColor" stroke-width="1.4"/></svg></div>
-        <div class="stat-card__value"><?= $stats['total'] ?></div>
-        <div class="stat-card__label">Total Listings</div>
-        <div class="stat-card__sub"><a href="<?= baseUrl('modules/listings/index.php') ?>">View all →</a></div>
-    </div>
-    <div class="stat-card stat-card--sage">
-        <div class="stat-card__icon-box"><svg viewBox="0 0 20 20" width="18" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.4"/><path d="M10 7v3l2 2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></div>
-        <div class="stat-card__value"><?= $stats['active'] ?></div>
-        <div class="stat-card__label">Available Now</div>
-        <div class="stat-card__sub"><a href="<?= baseUrl('modules/listings/index.php?status=available') ?>">Browse →</a></div>
-    </div>
-    <div class="stat-card stat-card--amber">
-        <div class="stat-card__icon-box"><svg viewBox="0 0 20 20" width="18" fill="none"><path d="M4 10a6 6 0 0112 0" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M16 10v2a6 6 0 01-12 0v-2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></div>
-        <div class="stat-card__value"><?= $stats['reserved'] ?></div>
-        <div class="stat-card__label">Pending Pickups</div>
-        <div class="stat-card__sub"><a href="<?= baseUrl('modules/reservations/index.php') ?>">Confirm →</a></div>
-    </div>
-    <div class="stat-card stat-card--terra">
-        <div class="stat-card__icon-box"><svg viewBox="0 0 20 20" width="18" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.4"/><path d="M7 10l2 2 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-        <div class="stat-card__value"><?= $stats['collected'] ?></div>
-        <div class="stat-card__label">Completed</div>
-        <div class="stat-card__sub"><a href="<?= baseUrl('modules/dashboard/impact.php') ?>">See impact →</a></div>
-    </div>
-</div>
-
-<!-- Two-col: Recent listings + Sidebar -->
-<div class="dash-cols dash-cols--wide-right">
-
-    <!-- Recent Listings -->
-    <div>
-        <div class="card">
-            <div class="card-header">
-                <h2>Recent Listings</h2>
-                <a href="<?= baseUrl('modules/listings/index.php') ?>" class="btn btn-sm btn-outline">View all</a>
+<div class="biz-grid">
+    <section class="card biz-panel">
+        <div class="card-header"><h3>Recent Listings</h3><a href="<?= baseUrl('modules/listings/index.php') ?>" class="btn btn-sm btn-outline">Manage</a></div>
+        <?php if (!empty($recent)): ?>
+            <div class="biz-list">
+                <?php foreach ($recent as $row): ?>
+                    <article class="biz-row">
+                        <div>
+                            <a href="<?= baseUrl('modules/listings/view.php?id=' . $row['id']) ?>" class="biz-row__title"><?= e(truncate($row['title'], 52)) ?></a>
+                            <p><?= e(rtrim(rtrim(number_format((float)$row['quantity'], 2, '.', ''), '0'), '.') . ' ' . $row['unit']) ?> · Pickup <?= formatDate($row['pickup_start'], 'd M, H:i') ?></p>
+                        </div>
+                        <div class="biz-row__meta">
+                            <span class="status-badge status-badge--<?= statusClass($row['status']) ?>"><?= statusLabel($row['status']) ?></span>
+                            <a href="<?= baseUrl('modules/listings/edit.php?id=' . $row['id']) ?>" class="btn btn-xs btn-outline">Edit</a>
+                        </div>
+                    </article>
+                <?php endforeach; ?>
             </div>
-            <?php if (!empty($recent)): ?>
-            <div class="table-wrapper">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Title</th>
-                            <th>Status</th>
-                            <th>Qty</th>
-                            <th>Pickup from</th>
-                            <th>Posted</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($recent as $row): ?>
-                        <tr>
-                            <td style="font-weight:600;max-width:200px">
-                                <a href="<?= baseUrl('modules/listings/view.php?id=' . $row['id']) ?>" style="color:var(--olive)">
-                                    <?= e(truncate($row['title'], 38)) ?>
-                                </a>
-                            </td>
-                            <td><span class="status-badge status-badge--<?= statusClass($row['status']) ?>"><?= statusLabel($row['status']) ?></span></td>
-                            <td style="color:var(--text-muted)"><?= e($row['quantity'] . ' ' . $row['unit']) ?></td>
-                            <td style="font-size:.82rem"><?= formatDate($row['pickup_start'], 'd M, H:i') ?></td>
-                            <td style="font-size:.82rem;color:var(--text-muted)"><?= formatDate($row['created_at'], 'd M Y') ?></td>
-                            <td>
-                                <a href="<?= baseUrl('modules/listings/edit.php?id=' . $row['id']) ?>" class="btn btn-xs btn-outline">Edit</a>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
-            <?php else: ?>
-            <div class="empty-state">
-                <div class="empty-state__icon"><svg viewBox="0 0 24 24" width="28" fill="none"><rect x="3" y="5" width="18" height="15" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M9 9h6M9 12h4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></div>
-                <h3>No listings yet</h3>
-                <p>Share your first surplus food listing with the community.</p>
-                <a href="<?= baseUrl('modules/listings/create.php') ?>" class="btn btn-primary">Post Your First Listing</a>
-            </div>
-            <?php endif; ?>
-        </div>
-    </div>
+        <?php else: ?>
+            <div class="empty-state"><h3>No listings yet</h3><p>Start by posting your first surplus food listing.</p></div>
+        <?php endif; ?>
+    </section>
 
-    <!-- Sidebar -->
-    <div style="display:flex;flex-direction:column;gap:1.25rem">
-
-        <!-- Quick actions -->
-        <div class="card">
+    <aside class="biz-side-stack">
+        <section class="card biz-panel">
             <div class="card-header"><h3>Quick Actions</h3></div>
-            <div class="card-body" style="padding:.75rem">
-                <nav class="side-actions">
-                    <a href="<?= baseUrl('modules/listings/create.php') ?>" class="side-action">
-                        <div class="side-action__icon" style="background:rgba(74,103,65,.1);color:var(--olive)"><svg viewBox="0 0 18 18" width="15" fill="none"><path d="M9 4v10M4 9h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div>
-                        Post a Listing
-                    </a>
-                    <a href="<?= baseUrl('modules/listings/index.php') ?>" class="side-action">
-                        <div class="side-action__icon" style="background:rgba(122,154,106,.12);color:#4e7a46"><svg viewBox="0 0 18 18" width="15" fill="none"><rect x="2" y="4" width="14" height="10" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M5 8h8M5 11h5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></div>
-                        Manage Listings
-                    </a>
-                    <a href="<?= baseUrl('modules/reservations/index.php') ?>" class="side-action">
-                        <div class="side-action__icon" style="background:rgba(196,145,62,.1);color:var(--amber)"><svg viewBox="0 0 18 18" width="15" fill="none"><circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.4"/><path d="M9 6v3.5l2 2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></div>
-                        Incoming Reservations
-                        <?php if ($stats['reserved'] > 0): ?>
-                        <span class="tab-nav__count" style="margin-left:auto"><?= $stats['reserved'] ?></span>
-                        <?php endif; ?>
-                    </a>
-                    <a href="<?= baseUrl('modules/profile/business_profile.php') ?>" class="side-action">
-                        <div class="side-action__icon" style="background:rgba(181,96,74,.1);color:var(--terra)"><svg viewBox="0 0 18 18" width="15" fill="none"><circle cx="9" cy="6" r="3" stroke="currentColor" stroke-width="1.4"/><path d="M3 16v-1a6 6 0 0112 0v1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></div>
-                        Business Profile
-                    </a>
-                </nav>
+            <div class="card-body biz-actions">
+                <a href="<?= baseUrl('modules/listings/create.php') ?>" class="biz-action-link">Post new food</a>
+                <a href="<?= baseUrl('modules/listings/index.php') ?>" class="biz-action-link">Manage listings</a>
+                <a href="<?= baseUrl('modules/reservations/index.php') ?>" class="biz-action-link">Confirm pickups</a>
+                <a href="<?= baseUrl('modules/profile/business_profile.php#details') ?>" class="biz-action-link">Update profile</a>
+                <a href="<?= baseUrl('modules/reports/index.php') ?>" class="biz-action-link">Review reports</a>
             </div>
-        </div>
+        </section>
 
-        <!-- Impact preview -->
-        <div class="impact-preview">
-            <div class="impact-preview__title">
-                <span>Your Impact</span>
-                <a href="<?= baseUrl('modules/dashboard/impact.php') ?>">Full report →</a>
+        <section class="card biz-panel">
+            <div class="card-header"><h3>Impact Preview</h3><a href="<?= baseUrl('modules/dashboard/impact.php') ?>" class="btn btn-xs btn-outline">Open</a></div>
+            <div class="card-body biz-impact-mini">
+                <div><span>Meals saved</span><strong><?= number_format($impact['meals'] ?? 0) ?></strong></div>
+                <div><span>Food rescued</span><strong><?= number_format($impact['kg'] ?? 0, 1) ?> kg</strong></div>
+                <div><span>CO2 avoided</span><strong><?= number_format($impact['co2'] ?? 0, 1) ?> kg</strong></div>
             </div>
-            <div class="impact-row">
-                <span class="impact-row__label">
-                    <svg viewBox="0 0 16 16" width="14" fill="none"><path d="M8 2a6 6 0 100 12A6 6 0 008 2zm0 3v3l2 2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
-                    Pickups completed
-                </span>
-                <span class="impact-row__value"><?= number_format($stats['collected']) ?></span>
-            </div>
-            <div class="impact-row">
-                <span class="impact-row__label">
-                    <svg viewBox="0 0 16 16" width="14" fill="none"><path d="M8 14s-5-3-5-7a5 5 0 0110 0c0 4-5 7-5 7z" stroke="currentColor" stroke-width="1.3"/></svg>
-                    Est. meals saved
-                </span>
-                <span class="impact-row__value"><?= number_format($impact['meals'] ?? 0) ?></span>
-            </div>
-            <div class="impact-row">
-                <span class="impact-row__label">
-                    <svg viewBox="0 0 16 16" width="14" fill="none"><circle cx="8" cy="8" r="5" stroke="currentColor" stroke-width="1.3"/><path d="M5.5 10.5l5-5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
-                    Est. kg rescued
-                </span>
-                <span class="impact-row__value"><?= number_format($impact['kg'] ?? 0, 1) ?></span>
-            </div>
-            <div class="impact-row">
-                <span class="impact-row__label">
-                    <svg viewBox="0 0 16 16" width="14" fill="none"><path d="M8 3 L10 7 L14 7.5 L11 10.5 L12 14.5 L8 12.5 L4 14.5 L5 10.5 L2 7.5 L6 7Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
-                    CO₂ saved (kg)
-                </span>
-                <span class="impact-row__value"><?= number_format($impact['co2'] ?? 0, 1) ?></span>
-            </div>
-        </div>
-
-    </div>
+        </section>
+    </aside>
 </div>
+<?php renderBusinessShellEnd(); ?>
 
 <?php /* ════════════════════════════════════════════════════════
        GENERAL USER DASHBOARD
 ════════════════════════════════════════════════════════ */ ?>
 <?php elseif ($role === 'general_user'): ?>
+<?php
+$userDashActions = '<a href="' . baseUrl('modules/reservations/my.php') . '" class="btn btn-outline">My Reservations</a>'
+    . '<a href="' . baseUrl('modules/listings/browse.php') . '" class="btn btn-primary">Browse Food</a>';
+renderUserShellStart('dashboard', 'Member Dashboard', $greeting . ', ' . currentUserName() . '. Manage your pickups and discover available food.', $userDashActions);
+?>
 
 <!-- Welcome banner -->
 <div class="dash-welcome dash-welcome--user">
@@ -483,11 +363,18 @@ require_once __DIR__ . '/partials/header.php';
     </div>
     <?php endif; ?>
 </div>
+<?php renderUserShellEnd(); ?>
 
 <?php /* ════════════════════════════════════════════════════════
        CHARITY DASHBOARD
 ════════════════════════════════════════════════════════ */ ?>
 <?php elseif ($role === 'charity'): ?>
+
+<?php
+$charActions = '<a href="' . baseUrl('modules/listings/browse.php') . '" class="btn btn-outline">Browse Food</a>'
+    . '<a href="' . baseUrl('modules/reservations/my.php') . '" class="btn btn-primary">My Collections</a>';
+renderCharityShellStart('dashboard', 'Charity Dashboard', $greeting . ', ' . currentUserName() . '. Track collections and manage pickups.', $charActions);
+?>
 
 <!-- Welcome banner -->
 <div class="dash-welcome dash-welcome--charity">
@@ -502,7 +389,7 @@ require_once __DIR__ . '/partials/header.php';
                 <?php if ($stats['available'] > 0): ?>
                     <strong style="color:#fff"><?= $stats['available'] ?> listing<?= $stats['available'] !== 1 ? 's' : '' ?></strong> currently available for collection in your community.
                 <?php else: ?>
-                    Collect surplus food for your community — check listings daily.
+                    Collect surplus food for your community - check listings daily.
                 <?php endif; ?>
             </p>
         </div>
@@ -628,6 +515,8 @@ require_once __DIR__ . '/partials/header.php';
         </div>
     </div>
 </div>
+
+<?php renderCharityShellEnd(); ?>
 
 <?php /* ════════════════════════════════════════════════════════
        ADMIN DASHBOARD

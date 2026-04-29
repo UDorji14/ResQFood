@@ -48,6 +48,15 @@ function browseUrl(int $pg, array $f): string {
 $pageTitle = 'Browse Food Listings';
 $hasFilters = $filters['keyword'] || $filters['category'] || $filters['city'];
 require_once __DIR__ . '/../../partials/header.php';
+if (currentUserRole() === 'general_user') {
+    require_once __DIR__ . '/../../partials/user_shell.php';
+    $actions = '<a href="' . baseUrl('modules/reservations/my.php') . '" class="btn btn-outline">My Reservations</a>';
+    renderUserShellStart('browse', 'Browse Food Listings', 'Discover nearby surplus food and reserve quickly.', $actions);
+} elseif (currentUserRole() === 'charity') {
+    require_once __DIR__ . '/../../partials/charity_shell.php';
+    $actions = '<a href="' . baseUrl('modules/reservations/my.php') . '" class="btn btn-outline">My Collections</a>';
+    renderCharityShellStart('browse', 'Browse Food', 'Explore surplus food and plan collections.', $actions);
+}
 ?>
 
 <!-- ── Browse Hero ─────────────────────────────────────────────── -->
@@ -59,7 +68,7 @@ require_once __DIR__ . '/../../partials/header.php';
                 <?php if ($totalCount > 0): ?>
                     <strong style="color:rgba(255,255,255,.9)"><?= $totalCount ?></strong>
                     listing<?= $totalCount !== 1 ? 's' : '' ?> available right now
-                    <?php if ($hasFilters): ?>&mdash; filtered<?php endif; ?>
+                    <?php if ($hasFilters): ?> - filtered<?php endif; ?>
                 <?php else: ?>
                     No listings match your search right now
                 <?php endif; ?>
@@ -150,7 +159,7 @@ require_once __DIR__ . '/../../partials/header.php';
             <?= $hasFilters ? 'No listings match your search' : 'No listings available right now' ?>
         </h3>
         <p style="color:var(--text-muted);font-size:.87rem">
-            <?= $hasFilters ? 'Try adjusting your search or removing filters.' : 'Check back soon — new food is posted daily.' ?>
+            <?= $hasFilters ? 'Try adjusting your search or removing filters.' : 'Check back soon - new food is posted daily.' ?>
         </p>
         <?php if ($hasFilters): ?>
         <a href="<?= baseUrl('modules/listings/browse.php') ?>" class="btn btn-outline">Show all listings</a>
@@ -184,7 +193,7 @@ require_once __DIR__ . '/../../partials/header.php';
 
         <div class="listing-card__body">
             <div class="listing-card__biz">
-                <?= e($l['business_name'] ?? '—') ?>
+                <?= e($l['business_name'] ?? '-') ?>
                 <?php if ($l['business_city']): ?>&nbsp;&middot;&nbsp;<?= e($l['business_city']) ?><?php endif; ?>
             </div>
             <div class="listing-card__title"><?= e($l['title']) ?></div>
@@ -247,4 +256,8 @@ require_once __DIR__ . '/../../partials/header.php';
 
 <?php endif; ?>
 
+<?php
+if (currentUserRole() === 'general_user') renderUserShellEnd();
+if (currentUserRole() === 'charity') renderCharityShellEnd();
+?>
 <?php require_once __DIR__ . '/../../partials/footer.php'; ?>

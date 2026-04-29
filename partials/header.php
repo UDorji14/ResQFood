@@ -21,8 +21,8 @@ function _navActive(string $segment): string {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="ResQFood — Redistribute surplus food, feed communities.">
-    <title><?= e($pageTitle) ?> — ResQFood</title>
+    <meta name="description" content="ResQFood - Redistribute surplus food, feed communities.">
+    <title><?= e($pageTitle) ?> - ResQFood</title>
     <link rel="stylesheet" href="<?= baseUrl('assets/css/app.css') ?>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -75,7 +75,6 @@ function _navActive(string $segment): string {
                 <a href="<?= baseUrl('modules/admin/users.php') ?>" class="<?= _navActive('/admin/users') ?> <?= _navActive('view_user') ?>">Users</a>
                 <a href="<?= baseUrl('modules/admin/listings.php') ?>" class="<?= _navActive('/admin/listings') ?> <?= _navActive('view_listing') ?>">Listings</a>
                 <a href="<?= baseUrl('modules/admin/reports.php') ?>" class="<?= _navActive('/admin/reports') ?>">Reports</a>
-                <a href="<?= baseUrl('modules/dashboard/impact.php') ?>" class="<?= _navActive('/impact') ?>">Impact</a>
             <?php endif; ?>
 
         </div>
@@ -158,7 +157,6 @@ function _navActive(string $segment): string {
             <a href="<?= baseUrl('modules/admin/users.php') ?>">User Management</a>
             <a href="<?= baseUrl('modules/admin/listings.php') ?>">Listing Oversight</a>
             <a href="<?= baseUrl('modules/admin/reports.php') ?>">Reports</a>
-            <a href="<?= baseUrl('modules/dashboard/impact.php') ?>">Impact Dashboard</a>
         <?php endif; ?>
 
     </div>

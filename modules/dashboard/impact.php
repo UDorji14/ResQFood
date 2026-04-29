@@ -104,26 +104,21 @@ if ($role === 'admin') {
 
 $pageTitle = $role === 'admin' ? 'Impact Dashboard' : 'My Impact';
 require_once __DIR__ . '/../../partials/header.php';
+if ($role === 'business') {
+    require_once __DIR__ . '/../../partials/business_shell.php';
+    renderBusinessShellStart('impact', 'My Impact', 'Track the measurable outcomes of your rescued-food operations.');
+}
 ?>
-
-<div class="breadcrumb">
-    <a href="<?= baseUrl('dashboard.php') ?>">Dashboard</a>
-    <?php if ($role === 'admin'): ?>
-    <a href="<?= baseUrl('modules/admin/dashboard.php') ?>">Admin</a>
-    <?php endif; ?>
-    <span>Impact</span>
-</div>
-
+<?php if ($role !== 'business'): ?>
 <div class="page-head">
     <div class="page-head__top">
         <div>
             <h1><?= $role === 'admin' ? 'Platform Impact Dashboard' : 'My Impact Summary' ?></h1>
-            <p class="text-muted">
-                <?= $role === 'admin' ? 'Environmental and social metrics across all ResQFood activity.' : 'Your contribution to reducing food waste and feeding communities.' ?>
-            </p>
+            <p class="text-muted"><?= $role === 'admin' ? 'Environmental and social metrics across all ResQFood activity.' : 'Your contribution to reducing food waste and feeding communities.' ?></p>
         </div>
     </div>
 </div>
+<?php endif; ?>
 
 <!-- ── Approximation disclaimer ──────────────────────────── -->
 <div class="impact-disclaimer">
@@ -294,9 +289,9 @@ require_once __DIR__ . '/../../partials/header.php';
                 <tr>
                     <td style="font-weight:600;font-size:.87rem"><?= e(truncate($ir['title'], 36)) ?></td>
                     <?php if ($role === 'admin'): ?>
-                    <td style="font-size:.82rem;color:var(--text-muted)"><?= e($ir['business_name'] ?? '—') ?></td>
+                    <td style="font-size:.82rem;color:var(--text-muted)"><?= e($ir['business_name'] ?? '-') ?></td>
                     <?php endif; ?>
-                    <td style="font-size:.82rem"><?= e($ir['category'] ?? '—') ?></td>
+                    <td style="font-size:.82rem"><?= e($ir['category'] ?? '-') ?></td>
                     <td style="color:var(--olive);font-weight:700"><?= number_format($ir['estimated_meals_saved'], 1) ?></td>
                     <td style="font-size:.83rem"><?= number_format($ir['estimated_kg_saved'], 2) ?> kg</td>
                     <td style="font-size:.83rem"><?= number_format($ir['estimated_co2_reduced'], 2) ?> kg</td>
@@ -309,4 +304,5 @@ require_once __DIR__ . '/../../partials/header.php';
 </div>
 <?php endif; ?>
 
+<?php if ($role === 'business') renderBusinessShellEnd(); ?>
 <?php require_once __DIR__ . '/../../partials/footer.php'; ?>

@@ -178,13 +178,10 @@ if (!empty($errors)) {
 
 $pageTitle = 'Business Profile';
 require_once __DIR__ . '/../../partials/header.php';
+require_once __DIR__ . '/../../partials/business_shell.php';
+$actions = '<a href="' . baseUrl('dashboard.php') . '" class="btn btn-outline">Dashboard</a>';
+renderBusinessShellStart('profile', 'Business Profile', 'Manage business identity, account details, and security settings.', $actions);
 ?>
-
-<!-- Breadcrumb -->
-<div class="breadcrumb">
-    <a href="<?= baseUrl('dashboard.php') ?>">Dashboard</a>
-    <span>Business Profile</span>
-</div>
 
 <!-- Profile Hero -->
 <div class="profile-hero">
@@ -312,7 +309,7 @@ require_once __DIR__ . '/../../partials/header.php';
                             <div class="form-group">
                                 <label class="form-label" for="business_type">Business Type</label>
                                 <select id="business_type" name="business_type" class="form-control">
-                                    <option value="">— Select type —</option>
+                                    <option value="">- Select type -</option>
                                     <?php foreach (['Restaurant', 'Bakery', 'Cafe', 'Supermarket', 'Hotel', 'Catering', 'Grocery', 'Other'] as $type): ?>
                                         <option value="<?= e($type) ?>" <?= $old['business_type'] === $type ? 'selected' : '' ?>>
                                             <?= e($type) ?>
@@ -507,4 +504,5 @@ require_once __DIR__ . '/../../partials/header.php';
 </div><!-- /.profile-layout -->
 
 
+<?php renderBusinessShellEnd(); ?>
 <?php require_once __DIR__ . '/../../partials/footer.php'; ?>

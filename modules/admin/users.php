@@ -40,20 +40,24 @@ $hasFilters = $filters['role'] || $filters['status'] || $filters['keyword'];
 require_once __DIR__ . '/../../partials/header.php';
 ?>
 
+<?php
+require_once __DIR__ . '/../../partials/admin_shell.php';
+renderAdminShellStart(
+    'users',
+    'User Management',
+    'Search, filter, and moderate platform accounts.'
+);
+?>
+
 <div class="breadcrumb">
     <a href="<?= baseUrl('modules/admin/dashboard.php') ?>">Admin</a>
     <span>Users</span>
 </div>
 
-<div class="page-head">
-    <div class="page-head__top">
-        <div>
-            <h1>User Management</h1>
-            <p class="text-muted">
-                <strong style="color:var(--text-mid)"><?= number_format($total) ?></strong>
-                user<?= $total !== 1 ? 's' : '' ?> found<?= $hasFilters ? ' — filtered' : '' ?>.
-            </p>
-        </div>
+<div class="biz-toolbar" style="margin-bottom:1rem">
+    <div class="biz-stat-inline">
+        <strong><?= number_format($total) ?></strong>
+        <span>users<?= $hasFilters ? ' filtered' : '' ?></span>
     </div>
 </div>
 
@@ -156,7 +160,7 @@ require_once __DIR__ . '/../../partials/header.php';
                                 <?= statusLabel($u['charity_verif'] ?? 'pending') ?>
                             </span>
                         <?php else: ?>
-                            <span class="text-muted">—</span>
+                            <span class="text-muted">-</span>
                         <?php endif; ?>
                     </td>
                     <td style="font-size:.8rem">
@@ -221,4 +225,5 @@ require_once __DIR__ . '/../../partials/header.php';
     <?php endif; ?>
 </div>
 
+<?php renderAdminShellEnd(); ?>
 <?php require_once __DIR__ . '/../../partials/footer.php'; ?>

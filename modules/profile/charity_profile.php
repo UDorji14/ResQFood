@@ -170,16 +170,12 @@ if (!empty($errors)) {
 
 $pageTitle = 'Organisation Profile';
 require_once __DIR__ . '/../../partials/header.php';
+require_once __DIR__ . '/../../partials/charity_shell.php';
+renderCharityShellStart('profile', 'Charity Profile', 'Manage your organisation details and security settings.');
 ?>
 
-<!-- Breadcrumb -->
-<div class="breadcrumb">
-    <a href="<?= baseUrl('dashboard.php') ?>">Dashboard</a>
-    <span>Organisation Profile</span>
-</div>
-
 <!-- Profile Hero -->
-<div class="profile-hero" style="background:linear-gradient(135deg,#3a2e25,#7a4a35,var(--amber))">
+<div class="profile-hero" style="background:linear-gradient(135deg,rgba(74,103,65,.85) 0%, rgba(122,154,106,.9) 55%, rgba(196,145,62,.82) 100%)">
     <div class="profile-hero__inner">
         <div class="profile-hero__avatar" style="background:rgba(255,255,255,0.2)">
             <?= e(mb_strtoupper(mb_substr($profile['organization_name'] ?? $profile['full_name'] ?? 'C', 0, 1))) ?>
@@ -468,4 +464,5 @@ require_once __DIR__ . '/../../partials/header.php';
 </div><!-- /.profile-layout -->
 
 
+<?php renderCharityShellEnd(); ?>
 <?php require_once __DIR__ . '/../../partials/footer.php'; ?>

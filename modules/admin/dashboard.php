@@ -30,12 +30,21 @@ $pageTitle = 'Admin Dashboard';
 require_once __DIR__ . '/../../partials/header.php';
 ?>
 
+<?php
+require_once __DIR__ . '/../../partials/admin_shell.php';
+renderAdminShellStart(
+    'dashboard',
+    'Admin Dashboard',
+    'Platform overview, verification queues, and recent audit activity.'
+);
+?>
+
 <!-- ── Admin Hero ───────────────────────────────────────────── -->
 <div class="admin-hero">
     <div class="admin-hero__inner">
         <div>
-            <div class="admin-hero__eyebrow">ResQFood &mdash; Control Centre</div>
-            <div class="admin-hero__title">Admin Dashboard</div>
+            <div class="admin-hero__eyebrow">ResQFood - Control Centre</div>
+            <div class="admin-hero__title">Control Centre Snapshot</div>
             <div class="admin-hero__sub">Platform overview &middot; <?= date('l, d M Y') ?></div>
         </div>
         <div class="admin-hero__actions">
@@ -55,10 +64,10 @@ require_once __DIR__ . '/../../partials/header.php';
                 <svg viewBox="0 0 16 16" width="13" fill="none"><circle cx="8" cy="5" r="3" stroke="currentColor" stroke-width="1.4"/><path d="M2 13c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
                 Manage Users
             </a>
-            <a href="<?= baseUrl('modules/dashboard/impact.php') ?>" class="admin-hero__badge">
+            <!-- <a href="<?= baseUrl('modules/admin/impact.php') ?>" class="admin-hero__badge">
                 <svg viewBox="0 0 16 16" width="13" fill="none"><path d="M2 12l3-4 3 2 3-5 3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 Impact Report
-            </a>
+            </a> -->
         </div>
     </div>
 </div>
@@ -157,7 +166,7 @@ require_once __DIR__ . '/../../partials/header.php';
     <div class="card" style="background:linear-gradient(135deg,rgba(74,103,65,.05),rgba(74,103,65,.01))">
         <div class="card-header">
             <h3>Estimated Impact</h3>
-            <a href="<?= baseUrl('modules/dashboard/impact.php') ?>"
+            <a href="<?= baseUrl('modules/admin/impact.php') ?>"
                style="font-size:.8rem;color:var(--olive);text-decoration:none;font-weight:600">Full report &rarr;</a>
         </div>
         <div class="card-body" style="padding:1rem 1.25rem">
@@ -264,4 +273,5 @@ require_once __DIR__ . '/../../partials/header.php';
     </div>
 </div>
 
+<?php renderAdminShellEnd(); ?>
 <?php require_once __DIR__ . '/../../partials/footer.php'; ?>

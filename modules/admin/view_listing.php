@@ -56,6 +56,15 @@ $pageTitle = 'Listing: ' . $listing['title'];
 require_once __DIR__ . '/../../partials/header.php';
 ?>
 
+<?php
+require_once __DIR__ . '/../../partials/admin_shell.php';
+renderAdminShellStart(
+    'listings',
+    'Listing Review',
+    'Reservations history and admin controls.'
+);
+?>
+
 <div class="page-head">
     <div class="breadcrumb">
         <a href="<?= baseUrl('modules/admin/dashboard.php') ?>">Admin</a> /
@@ -103,16 +112,16 @@ require_once __DIR__ . '/../../partials/header.php';
                 <?php endif; ?>
                 <dl class="listing-meta-list">
                     <dt>Title</dt><dd><?= e($listing['title']) ?></dd>
-                    <dt>Category</dt><dd><?= e($listing['category'] ?? '—') ?></dd>
+                    <dt>Category</dt><dd><?= e($listing['category'] ?? '-') ?></dd>
                     <dt>Quantity</dt><dd><?= e($listing['quantity'] . ' ' . $listing['unit']) ?></dd>
-                    <dt>Description</dt><dd><?= nl2br(e($listing['description'] ?? '—')) ?></dd>
-                    <dt>Pickup address</dt><dd><?= e($listing['pickup_address'] ?? '—') ?></dd>
+                    <dt>Description</dt><dd><?= nl2br(e($listing['description'] ?? '-')) ?></dd>
+                    <dt>Pickup address</dt><dd><?= e($listing['pickup_address'] ?? '-') ?></dd>
                     <dt>Pickup window</dt>
                     <dd>
                         <?= formatDate($listing['pickup_start'], 'd M Y, H:i') ?> →
                         <?= formatDate($listing['pickup_end'], 'd M Y, H:i') ?>
                     </dd>
-                    <dt>Expires</dt><dd><?= $listing['expiry_time'] ? formatDate($listing['expiry_time'], 'd M Y, H:i') : '—' ?></dd>
+                    <dt>Expires</dt><dd><?= $listing['expiry_time'] ? formatDate($listing['expiry_time'], 'd M Y, H:i') : '-' ?></dd>
                     <dt>Status</dt><dd><span class="status-badge status-badge--<?= statusClass($listing['status']) ?>"><?= statusLabel($listing['status']) ?></span></dd>
                     <dt>Created</dt><dd><?= formatDate($listing['created_at'], 'd M Y, H:i') ?></dd>
                     <dt>Updated</dt><dd><?= formatDate($listing['updated_at'], 'd M Y, H:i') ?></dd>
@@ -141,7 +150,7 @@ require_once __DIR__ . '/../../partials/header.php';
                             <td><span class="pickup-code" style="font-size:.85rem;padding:.2rem .5rem"><?= e($r['pickup_code']) ?></span></td>
                             <td><span class="status-badge status-badge--<?= statusClass($r['reservation_status']) ?>"><?= statusLabel($r['reservation_status']) ?></span></td>
                             <td style="font-size:.78rem;color:var(--text-muted)"><?= formatDate($r['reserved_at'], 'd M Y, H:i') ?></td>
-                            <td style="font-size:.78rem;color:var(--text-muted)"><?= $r['collected_at'] ? formatDate($r['collected_at'], 'd M Y, H:i') : '—' ?></td>
+                            <td style="font-size:.78rem;color:var(--text-muted)"><?= $r['collected_at'] ? formatDate($r['collected_at'], 'd M Y, H:i') : '-' ?></td>
                         </tr>
                         <?php endforeach; ?>
                     </tbody>
@@ -218,4 +227,5 @@ require_once __DIR__ . '/../../partials/header.php';
     </div>
 </div>
 
+<?php renderAdminShellEnd(); ?>
 <?php require_once __DIR__ . '/../../partials/footer.php'; ?>

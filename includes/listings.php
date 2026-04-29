@@ -180,7 +180,7 @@ function canReserve(int $userId, string $role, array $listing, float $requestedQ
     }
     $availQty = (float) ($listing['available_quantity'] ?? $listing['quantity']);
     if ($availQty <= 0) {
-        return 'This listing is fully reserved — no quantity remaining.';
+        return 'This listing is fully reserved - no quantity remaining.';
     }
     if (strtotime($listing['pickup_end']) < time()) {
         return 'The pickup window for this listing has passed.';

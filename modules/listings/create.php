@@ -108,7 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $msg = 'Listing "' . truncate($data['title'], 40) . '" published successfully.';
             if ($imageError !== '') {
-                $msg .= ' (Note: Image could not be saved — ' . $imageError . ')';
+                $msg .= ' (Note: Image could not be saved - ' . $imageError . ')';
             }
             setFlash('success', $msg);
             redirect(baseUrl('modules/listings/view.php?id=' . $listingId));
@@ -123,22 +123,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $pageTitle = 'Post New Listing';
 require_once __DIR__ . '/../../partials/header.php';
+require_once __DIR__ . '/../../partials/business_shell.php';
+$actions = '<a href="' . baseUrl('modules/listings/index.php') . '" class="btn btn-outline">Back to Listings</a>';
+renderBusinessShellStart('post', 'Post Food Listing', 'Create a structured listing with pickup details and visibility controls.', $actions);
 ?>
-
-<div class="breadcrumb">
-    <a href="<?= baseUrl('dashboard.php') ?>">Dashboard</a>
-    <a href="<?= baseUrl('modules/listings/index.php') ?>">My Listings</a>
-    <span>Post New Listing</span>
-</div>
-
-<div class="page-head">
-    <div class="page-head__top">
-        <div>
-            <h1>Post a New Listing</h1>
-            <p class="text-muted">Share your surplus food — someone nearby needs it today.</p>
-        </div>
-    </div>
-</div>
 
 <?php if (!empty($errors['_general'])): ?>
 <div class="flash flash--error mb-3">
@@ -172,9 +160,9 @@ require_once __DIR__ . '/../../partials/header.php';
                         <input type="text" id="title" name="title"
                                class="form-control <?= isset($errors['title']) ? 'is-invalid' : '' ?>"
                                value="<?= e($old['title']) ?>"
-                               placeholder="e.g. Fresh sourdough loaves — end of day"
+                               placeholder="e.g. Fresh sourdough loaves - end of day"
                                maxlength="200" required autocomplete="off">
-                        <span class="form-hint">Be specific — good titles get reserved faster.</span>
+                        <span class="form-hint">Be specific - good titles get reserved faster.</span>
                         <?php if (isset($errors['title'])): ?>
                             <span class="form-error"><?= e($errors['title']) ?></span>
                         <?php endif; ?>
@@ -184,7 +172,7 @@ require_once __DIR__ . '/../../partials/header.php';
                         <div class="form-group">
                             <label class="form-label" for="category">Category</label>
                             <select id="category" name="category" class="form-control">
-                                <option value="">— Select —</option>
+                                <option value="">- Select -</option>
                                 <?php foreach (listingCategoryOptions() as $cat): ?>
                                     <option value="<?= e($cat) ?>" <?= $old['category'] === $cat ? 'selected' : '' ?>>
                                         <?= e($cat) ?>
@@ -218,9 +206,9 @@ require_once __DIR__ . '/../../partials/header.php';
                     <div class="form-group">
                         <label class="form-label" for="description">Description</label>
                         <textarea id="description" name="description" class="form-control" rows="4"
-                                  placeholder="Describe the food — its condition, variety, packaging, anything helpful…"
+                                  placeholder="Describe the food - its condition, variety, packaging, anything helpful..."
                                   data-autoresize><?= e($old['description']) ?></textarea>
-                        <span class="form-hint">Optional but strongly recommended — helps people decide quickly.</span>
+                        <span class="form-hint">Optional but strongly recommended - helps people decide quickly.</span>
                     </div>
 
                 </div>
@@ -392,4 +380,5 @@ require_once __DIR__ . '/../../partials/header.php';
 })();
 </script>
 
+<?php renderBusinessShellEnd(); ?>
 <?php require_once __DIR__ . '/../../partials/footer.php'; ?>

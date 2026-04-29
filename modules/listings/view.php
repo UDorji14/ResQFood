@@ -62,8 +62,15 @@ if ($role === 'business' && (int) $listing['business_user_id'] === $uid) {
 
 $pageTitle = $listing['title'];
 require_once __DIR__ . '/../../partials/header.php';
+if ($role === 'charity') {
+    require_once __DIR__ . '/../../partials/charity_shell.php';
+    $actions = '<a href="' . baseUrl('modules/listings/browse.php') . '" class="btn btn-outline">Browse Food</a>'
+        . '<a href="' . baseUrl('modules/reservations/my.php') . '" class="btn btn-primary">My Collections</a>';
+    renderCharityShellStart('browse', $listing['title'], 'Reserve and manage your pickup window.', $actions);
+}
 ?>
 
+<?php if ($role !== 'charity'): ?>
 <div class="breadcrumb">
     <?php if ($role === 'business'): ?>
         <a href="<?= baseUrl('modules/listings/index.php') ?>">My Listings</a>
@@ -72,6 +79,7 @@ require_once __DIR__ . '/../../partials/header.php';
     <?php endif; ?>
     <span><?= e(truncate($listing['title'], 42)) ?></span>
 </div>
+<?php endif; ?>
 
 <!-- ── Hero image ────────────────────────────────────────────── -->
 <div class="listing-hero">
@@ -236,7 +244,7 @@ require_once __DIR__ . '/../../partials/header.php';
                                 <a href="<?= baseUrl('modules/reservations/confirm_pickup.php?id=' . $r['id']) ?>"
                                    class="btn btn-sm btn-primary">Confirm Pickup</a>
                                 <?php else: ?>
-                                <span class="text-muted" style="font-size:.8rem">—</span>
+                                <span class="text-muted" style="font-size:.8rem">-</span>
                                 <?php endif; ?>
                             </td>
                         </tr>
@@ -455,5 +463,7 @@ require_once __DIR__ . '/../../partials/header.php';
 
     </div>
 </div>
+
+<?php if ($role === 'charity') renderCharityShellEnd(); ?>
 
 <?php require_once __DIR__ . '/../../partials/footer.php'; ?>

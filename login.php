@@ -67,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Sign in to your ResQFood account and start rescuing food.">
-    <title>Log In — ResQFood</title>
+    <title>Log In - ResQFood</title>
     <link rel="stylesheet" href="<?= baseUrl('assets/css/app.css') ?>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&display=swap"
@@ -254,7 +254,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </form>
 
             <div class="auth-form-footer">
-                Don't have an account? <a href="<?= baseUrl('register.php') ?>">Create one — it's free</a>
+                Don't have an account? <a href="<?= baseUrl('register.php') ?>">Create one - it's free</a>
                 <br>
                 <a href="<?= baseUrl('index.php') ?>" style="margin-top:.5rem;display:inline-block;opacity:.6;font-size:.8rem">&larr; Back to home</a>
             </div>

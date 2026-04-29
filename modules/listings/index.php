@@ -46,25 +46,10 @@ $tabs = [
 
 $pageTitle = 'My Listings';
 require_once __DIR__ . '/../../partials/header.php';
+require_once __DIR__ . '/../../partials/business_shell.php';
+$actions = '<a href="' . baseUrl('modules/listings/create.php') . '" class="btn btn-primary">Post Food</a>';
+renderBusinessShellStart('listings', 'My Listings', 'Track quantities, statuses, and pickup readiness from one screen.', $actions);
 ?>
-
-<div class="breadcrumb">
-    <a href="<?= baseUrl('dashboard.php') ?>">Dashboard</a>
-    <span>My Listings</span>
-</div>
-
-<div class="page-head">
-    <div class="page-head__top">
-        <div>
-            <h1>My Listings</h1>
-            <p class="text-muted">Manage your surplus food posts and track their status.</p>
-        </div>
-        <a href="<?= baseUrl('modules/listings/create.php') ?>" class="btn btn-primary">
-            <svg viewBox="0 0 20 20" width="15" fill="none" style="margin-right:.35rem"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
-            New Listing
-        </a>
-    </div>
-</div>
 
 <!-- ── Status pill bar ─────────────────────────────────────────── -->
 <div class="listings-stat-bar">
@@ -181,7 +166,7 @@ require_once __DIR__ . '/../../partials/header.php';
                                 <?= $l['active_reservations'] ?> active
                             </a>
                         <?php else: ?>
-                            <span class="text-muted" style="font-size:.8rem">—</span>
+                            <span class="text-muted" style="font-size:.8rem">-</span>
                         <?php endif; ?>
                     </td>
 
@@ -214,4 +199,5 @@ require_once __DIR__ . '/../../partials/header.php';
 
 <?php endif; ?>
 
+<?php renderBusinessShellEnd(); ?>
 <?php require_once __DIR__ . '/../../partials/footer.php'; ?>

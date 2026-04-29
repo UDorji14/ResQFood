@@ -15,11 +15,17 @@ requireRole(['admin']);
 $pageTitle = 'Impact Data';
 require_once __DIR__ . '/../../partials/header.php';
 ?>
-<div class="page-head">
-    <h1>Impact Overview</h1>
-    <p class="text-muted">Cumulative environmental and social metrics.</p>
-</div>
+
+<?php
+require_once __DIR__ . '/../../partials/admin_shell.php';
+renderAdminShellStart(
+    'impact',
+    'Impact Overview',
+    'Cumulative environmental and social metrics.'
+);
+?>
 <div class="card"><div class="card-body text-center" style="padding:3rem">
     <p class="text-muted">Impact data module coming soon.</p>
 </div></div>
+<?php renderAdminShellEnd(); ?>
 <?php require_once __DIR__ . '/../../partials/footer.php'; ?>

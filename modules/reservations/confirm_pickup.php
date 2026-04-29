@@ -136,12 +136,18 @@ if (!isConfirmable($reservation['reservation_status'])) {
 
 $pageTitle = 'Confirm Pickup';
 require_once __DIR__ . '/../../partials/header.php';
+if (currentUserRole() === 'business') {
+    require_once __DIR__ . '/../../partials/business_shell.php';
+    renderBusinessShellStart('reservations', 'Confirm Pickup', 'Verify the pickup code and mark this reservation as completed.');
+}
 ?>
-
-<div class="breadcrumb">
-    <a href="<?= baseUrl('modules/reservations/index.php') ?>">Reservations</a>
-    <span>Confirm Pickup</span>
+<?php if (currentUserRole() !== 'business'): ?>
+<div class="page-head">
+    <div class="page-head__top">
+        <div><h1>Confirm Pickup</h1><p class="text-muted">Verify reservation details before completion.</p></div>
+    </div>
 </div>
+<?php endif; ?>
 
 <div class="confirm-screen">
 
@@ -216,7 +222,7 @@ require_once __DIR__ . '/../../partials/header.php';
             <div class="notice notice--info" style="margin-bottom:1.25rem">
                 <svg viewBox="0 0 20 20" width="18" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M10 9v5m0-7h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
                 <div class="notice__body" style="font-size:.84rem">
-                    Ask the customer to show their code. Enter it below to verify — or leave blank and confirm on good faith.
+                    Ask the customer to show their code. Enter it below to verify - or leave blank and confirm on good faith.
                 </div>
             </div>
 
@@ -264,4 +270,5 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 
+<?php if (currentUserRole() === 'business') renderBusinessShellEnd(); ?>
 <?php require_once __DIR__ . '/../../partials/footer.php'; ?>

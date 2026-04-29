@@ -80,7 +80,7 @@ function post(string $key, string $default = ''): string
  */
 function formatDate(string $datetime, string $format = 'd M Y, H:i'): string
 {
-    return $datetime ? date($format, strtotime($datetime)) : '—';
+    return $datetime ? date($format, strtotime($datetime)) : '-';
 }
 
 /**

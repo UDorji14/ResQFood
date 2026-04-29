@@ -80,25 +80,26 @@ $pageTitle = 'Reports Moderation';
 require_once __DIR__ . '/../../partials/header.php';
 ?>
 
+<?php
+require_once __DIR__ . '/../../partials/admin_shell.php';
+renderAdminShellStart(
+    'reports',
+    'Reports Moderation',
+    'Review, filter, and resolve user-submitted reports.'
+);
+?>
+
 <div class="breadcrumb">
     <a href="<?= baseUrl('modules/admin/dashboard.php') ?>">Admin</a>
     <span>Reports</span>
 </div>
 
-<div class="page-head">
-    <div class="page-head__top">
-        <div>
-            <h1>Reports Moderation</h1>
-            <p class="text-muted">Review, filter, and action user-submitted reports.</p>
-        </div>
-        <?php if ($statusCounts['open'] > 0): ?>
-        <div class="notice notice--danger" style="margin:0;padding:.6rem 1rem;font-size:.83rem">
-            <svg viewBox="0 0 18 18" width="15" fill="none"><circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M9 5.5v4m0 2.5h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-            <span><strong><?= $statusCounts['open'] ?></strong> open report<?= $statusCounts['open'] !== 1 ? 's' : '' ?> need<?= $statusCounts['open'] !== 1 ? '' : 's' ?> attention</span>
-        </div>
-        <?php endif; ?>
-    </div>
+<?php if ($statusCounts['open'] > 0): ?>
+<div class="notice notice--danger" style="margin:0 0 1rem;padding:.6rem 1rem;font-size:.83rem">
+    <svg viewBox="0 0 18 18" width="15" fill="none"><circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M9 5.5v4m0 2.5h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    <span><strong><?= $statusCounts['open'] ?></strong> open report<?= $statusCounts['open'] !== 1 ? 's' : '' ?> need<?= $statusCounts['open'] !== 1 ? '' : 's' ?> attention</span>
 </div>
+<?php endif; ?>
 
 <!-- ── Summary strip ─────────────────────────────────────────────────────── -->
 <?php if ($hasDateFilter || $sumAll > 0): ?>
@@ -193,7 +194,7 @@ require_once __DIR__ . '/../../partials/header.php';
         <?php elseif ($toDate): ?>
             up to <strong><?= e(date('d M Y', strtotime($toDate))) ?></strong>
         <?php endif; ?>
-        — <strong><?= $totalCount ?></strong> result<?= $totalCount !== 1 ? 's' : '' ?>
+        - <strong><?= $totalCount ?></strong> result<?= $totalCount !== 1 ? 's' : '' ?>
     </div>
     <?php endif; ?>
 </div>
@@ -226,7 +227,7 @@ require_once __DIR__ . '/../../partials/header.php';
             <?php if ($hasFilters): ?>
                 No reports match these filters
             <?php elseif ($statusFilter === 'open'): ?>
-                No open reports — platform is clear
+                No open reports - platform is clear
             <?php else: ?>
                 No <?= e($tabs[$statusFilter] ?? $statusFilter) ?> reports
             <?php endif; ?>
@@ -406,4 +407,5 @@ require_once __DIR__ . '/../../partials/header.php';
 
 <?php endif; ?>
 
+<?php renderAdminShellEnd(); ?>
 <?php require_once __DIR__ . '/../../partials/footer.php'; ?>

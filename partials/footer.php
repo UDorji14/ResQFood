@@ -12,7 +12,7 @@
                 <path d="M10 2c4 0 8 4 8 8.5 0 3.5-2.5 6.5-8 7V2z" fill="rgba(200,225,190,0.4)"/>
             </svg>
             <strong style="color:rgba(200,225,190,0.85);font-size:0.85rem">ResQFood</strong>
-            <span style="opacity:.45;margin:0 .25rem">&mdash;</span>
+            <span style="opacity:.45;margin:0 .25rem">-</span>
             <span>&copy; <?= date('Y') ?> Reducing food waste, one rescue at a time.</span>
         </div>
 

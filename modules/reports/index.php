@@ -179,23 +179,26 @@ $tabs = [
 
 $pageTitle = 'My Reports';
 require_once __DIR__ . '/../../partials/header.php';
+if ($role === 'business') {
+    require_once __DIR__ . '/../../partials/business_shell.php';
+    renderBusinessShellStart('reports', 'Reports', 'Submit operational issues and track moderation outcomes.');
+} elseif ($role === 'general_user') {
+    require_once __DIR__ . '/../../partials/user_shell.php';
+    renderUserShellStart('reports', 'Reports', 'Submit issues and track moderation updates from admins.');
+} elseif ($role === 'charity') {
+    require_once __DIR__ . '/../../partials/charity_shell.php';
+    renderCharityShellStart('reports', 'Reports', 'Submit operational issues and track moderation updates from admins.');
+}
 ?>
-
-<div class="breadcrumb">
-    <a href="<?= baseUrl('dashboard.php') ?>">Dashboard</a>
-    <span>My Reports</span>
-</div>
-
+<?php if (!in_array($role, ['business', 'general_user', 'charity'], true)): ?>
 <div class="page-head">
     <div class="page-head__top">
-        <div>
-            <h1>Report to Admin</h1>
-            <p class="text-muted">Submit issues and track moderation status.</p>
-        </div>
+        <div><h1>Report to Admin</h1><p class="text-muted">Submit issues and track moderation status.</p></div>
     </div>
 </div>
+<?php endif; ?>
 
-<div class="admin-2col" style="align-items:start">
+<div class="<?= in_array($role, ['business', 'general_user', 'charity'], true) ? 'biz-report-layout' : 'admin-2col' ?>" style="align-items:start">
     <div class="card">
         <div class="card-header"><h3>Submit a Report</h3></div>
         <div class="card-body">
@@ -220,7 +223,7 @@ require_once __DIR__ . '/../../partials/header.php';
                         <option value="0">Not related to a specific listing</option>
                         <?php foreach ($listingOptions as $opt): ?>
                             <option value="<?= (int) $opt['id'] ?>" <?= (int)$old['listing_id'] === (int)$opt['id'] ? 'selected' : '' ?>>
-                                #<?= (int) $opt['id'] ?> — <?= e(truncate($opt['title'], 70)) ?>
+                                #<?= (int) $opt['id'] ?> - <?= e(truncate($opt['title'], 70)) ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
@@ -264,27 +267,35 @@ require_once __DIR__ . '/../../partials/header.php';
                 <div class="report-feed">
                     <?php foreach ($myReports as $rep): ?>
                         <div class="report-item report-item--<?= e($rep['report_status']) ?>">
-                            <div class="report-item__id">
-                                Report #<?= (int) $rep['id'] ?> &middot;
-                                <span class="status-badge status-badge--<?= statusClass($rep['report_status']) ?>">
-                                    <?= statusLabel($rep['report_status']) ?>
-                                </span>
-                                &middot; <?= formatDate($rep['created_at'], 'd M Y, H:i') ?>
-                            </div>
-                            <div class="report-item__reason"><?= e($rep['reason']) ?></div>
-                            <?php if (!empty($rep['listing_id'])): ?>
-                                <div class="report-item__links">
-                                    <span><strong>Listing:</strong> #<?= (int) $rep['listing_id'] ?> — <?= e(truncate($rep['listing_title'] ?? 'N/A', 55)) ?></span>
+                            <div class="report-item__head">
+                                <div class="report-item__id">
+                                    <span>Report #<?= (int) $rep['id'] ?></span>
+                                    <span class="status-badge status-badge--<?= statusClass($rep['report_status']) ?>">
+                                        <?= statusLabel($rep['report_status']) ?>
+                                    </span>
+                                    <span><?= formatDate($rep['created_at'], 'd M Y, H:i') ?></span>
                                 </div>
-                            <?php endif; ?>
-                            <?php if (!empty($rep['details'])): ?>
+                            </div>
+
+                            <div class="report-item__body">
+                                <div class="report-item__reason"><?= e($rep['reason']) ?></div>
+                                <?php if (!empty($rep['listing_id'])): ?>
+                                <div class="report-item__links">
+                                    <span><strong>Listing:</strong> #<?= (int) $rep['listing_id'] ?> - <?= e(truncate($rep['listing_title'] ?? 'N/A', 55)) ?></span>
+                                </div>
+                                <?php endif; ?>
+                                <?php if (!empty($rep['details'])): ?>
                                 <div class="report-item__details"><?= nl2br(e($rep['details'])) ?></div>
-                            <?php endif; ?>
+                                <?php endif; ?>
+                            </div>
+
                             <?php if (!empty($rep['admin_note'])): ?>
+                            <div class="report-item__foot">
                                 <div class="report-item__admin-note">
                                     <div class="report-item__note-label">Admin note<?= !empty($rep['reviewer_name']) ? ' by ' . e($rep['reviewer_name']) : '' ?></div>
                                     <?= nl2br(e($rep['admin_note'])) ?>
                                 </div>
+                            </div>
                             <?php endif; ?>
                         </div>
                     <?php endforeach; ?>
@@ -294,4 +305,7 @@ require_once __DIR__ . '/../../partials/header.php';
     </div>
 </div>
 
+<?php if ($role === 'business') renderBusinessShellEnd(); ?>
+<?php if ($role === 'general_user') renderUserShellEnd(); ?>
+<?php if ($role === 'charity') renderCharityShellEnd(); ?>
 <?php require_once __DIR__ . '/../../partials/footer.php'; ?>

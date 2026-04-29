@@ -94,7 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $msg = 'Account created! You can now log in.';
             if (in_array($data['role'], ['business', 'charity'])) {
-                $msg .= ' Your profile is pending admin verification — complete it after logging in to speed up the process.';
+                $msg .= ' Your profile is pending admin verification - complete it after logging in to speed up the process.';
             }
             setFlash('success', $msg);
             redirect(baseUrl('login.php'));
@@ -113,7 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Create your free ResQFood account and join the food rescue community.">
-    <title>Create Account — ResQFood</title>
+    <title>Create Account - ResQFood</title>
     <link rel="stylesheet" href="<?= baseUrl('assets/css/app.css') ?>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&display=swap"
@@ -221,7 +221,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <h2>Every plate tells a rescue story.</h2>
             <p>
                 Whether you're a food business with surplus, a charity serving your
-                community, or an individual who wants to help — ResQFood connects you.
+                community, or an individual who wants to help - ResQFood connects you.
             </p>
 
             <!-- SVG illustration -->
@@ -266,7 +266,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <path d="M7 7V5a3 3 0 016 0v2" stroke="currentColor" stroke-width="1.3"/>
                         </svg>
                     </div>
-                    <span>Free to join — no subscription needed</span>
+                    <span>Free to join - no subscription needed</span>
                 </div>
                 <div class="auth-brand-highlight">
                     <div class="auth-brand-highlight__icon">
@@ -306,7 +306,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </a>
 
             <h1 class="auth-form-title">Create your account</h1>
-            <p class="auth-form-subtitle">Join the food rescue community — free forever.</p>
+            <p class="auth-form-subtitle">Join the food rescue community - free forever.</p>
 
             <?= displayFlash() ?>
 

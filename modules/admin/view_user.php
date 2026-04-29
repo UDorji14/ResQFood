@@ -60,6 +60,15 @@ $pageTitle = 'User: ' . $user['full_name'];
 require_once __DIR__ . '/../../partials/header.php';
 ?>
 
+<?php
+require_once __DIR__ . '/../../partials/admin_shell.php';
+renderAdminShellStart(
+    'users',
+    'User Profile',
+    'Admin account view, verification controls, and activity history.'
+);
+?>
+
 <div class="page-head">
     <div class="breadcrumb">
         <a href="<?= baseUrl('modules/admin/dashboard.php') ?>">Admin</a> /
@@ -90,7 +99,7 @@ require_once __DIR__ . '/../../partials/header.php';
                 <dl class="listing-meta-list">
                     <dt>Full name</dt><dd><?= e($user['full_name']) ?></dd>
                     <dt>Email</dt><dd><?= e($user['email']) ?></dd>
-                    <dt>Phone</dt><dd><?= e($user['phone'] ?? '—') ?></dd>
+                    <dt>Phone</dt><dd><?= e($user['phone'] ?? '-') ?></dd>
                     <dt>Status</dt><dd><span class="status-badge status-badge--<?= statusClass($user['status']) ?>"><?= statusLabel($user['status']) ?></span></dd>
                     <dt>Role</dt><dd><span class="role-badge role-badge--<?= roleBadgeClass($user['role']) ?>"><?= roleLabel($user['role']) ?></span></dd>
                     <dt>Registered</dt><dd><?= formatDate($user['created_at'], 'd M Y, H:i') ?></dd>
@@ -115,11 +124,11 @@ require_once __DIR__ . '/../../partials/header.php';
             </div>
             <div class="card-body">
                 <dl class="listing-meta-list">
-                    <dt>Business name</dt><dd><?= e($user['business_name'] ?? '—') ?></dd>
-                    <dt>Type</dt><dd><?= e($user['business_type'] ?? '—') ?></dd>
-                    <dt>Address</dt><dd><?= e($user['biz_address'] ?? '—') ?></dd>
-                    <dt>City</dt><dd><?= e($user['biz_city'] ?? '—') ?></dd>
-                    <dt>Description</dt><dd><?= e($user['biz_desc'] ?? '—') ?></dd>
+                    <dt>Business name</dt><dd><?= e($user['business_name'] ?? '-') ?></dd>
+                    <dt>Type</dt><dd><?= e($user['business_type'] ?? '-') ?></dd>
+                    <dt>Address</dt><dd><?= e($user['biz_address'] ?? '-') ?></dd>
+                    <dt>City</dt><dd><?= e($user['biz_city'] ?? '-') ?></dd>
+                    <dt>Description</dt><dd><?= e($user['biz_desc'] ?? '-') ?></dd>
                     <dt>Verification</dt>
                     <dd>
                         <form method="POST" action="<?= baseUrl('modules/admin/actions.php') ?>" style="display:flex;gap:.5rem;flex-wrap:wrap">
@@ -152,11 +161,11 @@ require_once __DIR__ . '/../../partials/header.php';
             </div>
             <div class="card-body">
                 <dl class="listing-meta-list">
-                    <dt>Organisation</dt><dd><?= e($user['organization_name'] ?? '—') ?></dd>
-                    <dt>Contact</dt><dd><?= e($user['contact_person'] ?? '—') ?></dd>
-                    <dt>Address</dt><dd><?= e($user['charity_address'] ?? '—') ?></dd>
-                    <dt>City</dt><dd><?= e($user['charity_city'] ?? '—') ?></dd>
-                    <dt>Description</dt><dd><?= e($user['charity_desc'] ?? '—') ?></dd>
+                    <dt>Organisation</dt><dd><?= e($user['organization_name'] ?? '-') ?></dd>
+                    <dt>Contact</dt><dd><?= e($user['contact_person'] ?? '-') ?></dd>
+                    <dt>Address</dt><dd><?= e($user['charity_address'] ?? '-') ?></dd>
+                    <dt>City</dt><dd><?= e($user['charity_city'] ?? '-') ?></dd>
+                    <dt>Description</dt><dd><?= e($user['charity_desc'] ?? '-') ?></dd>
                     <dt>Verification</dt>
                     <dd>
                         <form method="POST" action="<?= baseUrl('modules/admin/actions.php') ?>" style="display:flex;gap:.5rem;flex-wrap:wrap">
@@ -262,4 +271,5 @@ require_once __DIR__ . '/../../partials/header.php';
     <?php endif; ?>
 </div>
 
+<?php renderAdminShellEnd(); ?>
 <?php require_once __DIR__ . '/../../partials/footer.php'; ?>

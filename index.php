@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ResQFood — Turn Surplus Into Community Value</title>
+    <title>ResQFood - Turn Surplus Into Community Value</title>
     <meta name="description" content="ResQFood connects food businesses, local users, and charities to coordinate surplus food redistribution through structured listings, reservations, and pickup tracking.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -37,8 +37,8 @@
                 <li><a href="#contact">Contact</a></li>
             </ul>
             <div class="nav-ctas">
-                <a href="#" class="btn btn-ghost btn-sm">Log In</a>
-                <a href="#" class="btn btn-primary btn-sm">Get Started</a>
+                <a href="login.php" class="btn btn-ghost btn-sm">Log In</a>
+                <a href="register.php" class="btn btn-primary btn-sm">Get Started</a>
             </div>
         </div>
     </nav>
@@ -69,9 +69,9 @@
             <h1 class="hero-h1 h-enter h-enter-2">
                 Surplus food,<br><em>shared with</em><br>purpose.
             </h1>
-            <p class="hero-sub h-enter h-enter-3">Connecting food businesses, communities, and charities — so good food reaches people before it goes to waste.</p>
+            <p class="hero-sub h-enter h-enter-3">Connecting food businesses, communities, and charities - so good food reaches people before it goes to waste.</p>
             <div class="hero-ctas h-enter h-enter-4">
-                <a href="#" class="btn btn-primary btn-lg">Get Started</a>
+                <a href="register.php" class="btn btn-primary btn-lg">Get Started</a>
                 <a href="#how-it-works" class="btn btn-outline btn-lg">How It Works</a>
             </div>
             <div class="hero-roles h-enter h-enter-5">
@@ -161,7 +161,7 @@
             <div class="jstep-body">
                 <span class="jstep-num">01</span>
                 <h3>Business posts surplus food</h3>
-                <p>Restaurants, bakeries, and cafes publish a listing with quantity, pickup window, and instructions — in minutes.</p>
+                <p>Restaurants, bakeries, and cafes publish a listing with quantity, pickup window, and instructions - in minutes.</p>
             </div>
             <div class="jstep-mid">
                 <div class="jstep-icon">
@@ -189,7 +189,7 @@
             <div class="jstep-body">
                 <span class="jstep-num">03</span>
                 <h3>Reservation confirmed instantly</h3>
-                <p>A single action reserves the listing. Status updates across the platform — preventing double-bookings.</p>
+                <p>A single action reserves the listing. Status updates across the platform - preventing double-bookings.</p>
             </div>
             <div class="jstep-mid">
                 <div class="jstep-icon">
@@ -237,7 +237,7 @@
     <div class="container showcase-head" data-reveal>
         <span class="overline">The platform</span>
         <h2>Designed for real kitchens,<br>real communities, real time.</h2>
-        <p class="section-sub">Every participant — business, collector, administrator — gets a clear, structured experience built around their specific role.</p>
+        <p class="section-sub">Every participant - business, collector, administrator - gets a clear, structured experience built around their specific role.</p>
     </div>
 
     <div class="showcase-stage">
@@ -481,7 +481,7 @@
             <div class="pj-section-inner">
                 <span class="overline pj-overline">Surplus, still valuable</span>
                 <h2 class="pj-h2" data-reveal>Good food shouldn't<br>end with the day.</h2>
-                <p class="pj-p" data-reveal data-reveal-delay="120">Every evening, bakeries, cafes, and restaurants prepare more than they sell. That surplus has hours of value left — and communities nearby who need it.</p>
+                <p class="pj-p" data-reveal data-reveal-delay="120">Every evening, bakeries, cafes, and restaurants prepare more than they sell. That surplus has hours of value left - and communities nearby who need it.</p>
                 <blockquote class="pj-quote" data-reveal data-reveal-delay="240">
                     <em>"28 portions, freshly prepared. Three hours of pickup time remaining. No one knows it's available yet."</em>
                 </blockquote>
@@ -523,7 +523,7 @@
                         <button class="puic-btn">Reserve</button>
                     </div>
                 </div>
-                <p class="pj-p" data-reveal data-reveal-delay="300">ResQFood turns surplus into a structured, visible listing that nearby users and charities can discover, reserve, and collect — in a single, coordinated workflow.</p>
+                <p class="pj-p" data-reveal data-reveal-delay="300">ResQFood turns surplus into a structured, visible listing that nearby users and charities can discover, reserve, and collect - in a single, coordinated workflow.</p>
             </div>
         </div>
 
@@ -817,7 +817,7 @@
                         <svg class="mval-icon" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".3"/><rect x="10" y="9" width="12" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 14h6M13 18h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
                     </div>
                     <h3>Practical for real operations</h3>
-                    <p>Built around actual redistribution steps — listing, reserving, scheduling, collecting — not abstract product features.</p>
+                    <p>Built around actual redistribution steps - listing, reserving, scheduling, collecting - not abstract product features.</p>
                 </div>
                 <div class="mval" data-reveal data-reveal-delay="240">
                     <div class="mval-top">
@@ -849,10 +849,10 @@
     <div class="container cta-body" data-reveal>
         <span class="tag-pill cta-tag"><span class="tag-dot"></span>Join the platform</span>
         <h2 class="cta-h">Ready to turn surplus<br>into community value?</h2>
-        <p class="cta-sub">Whether you run a food business, want to reduce local waste, or support your community — ResQFood connects you to the right people at the right time.</p>
+        <p class="cta-sub">Whether you run a food business, want to reduce local waste, or support your community - ResQFood connects you to the right people at the right time.</p>
         <div class="cta-actions">
-            <a href="#" class="btn btn-cream btn-lg">Get Started</a>
-            <a href="#" class="btn btn-outline-cream btn-lg">Explore Listings</a>
+            <a href="register.php" class="btn btn-cream btn-lg">Get Started</a>
+            <a href="login.php" class="btn btn-outline-cream btn-lg">Explore Listings</a>
         </div>
     </div>
 
@@ -874,7 +874,7 @@
                 </span>
                 <strong>ResQFood</strong>
             </a>
-            <p>A coordinated platform for surplus food redistribution — connecting businesses, communities, and charities.</p>
+            <p>A coordinated platform for surplus food redistribution - connecting businesses, communities, and charities.</p>
             <a href="mailto:hello@resqfood.com" class="footer-email">hello@resqfood.com</a>
         </div>
 

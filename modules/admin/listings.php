@@ -43,17 +43,24 @@ $pageTitle = 'Listing Oversight';
 require_once __DIR__ . '/../../partials/header.php';
 ?>
 
+<?php
+require_once __DIR__ . '/../../partials/admin_shell.php';
+renderAdminShellStart(
+    'listings',
+    'Listing Oversight',
+    'Search, filter, and moderate platform listings.'
+);
+?>
+
 <div class="breadcrumb">
     <a href="<?= baseUrl('modules/admin/dashboard.php') ?>">Admin</a>
     <span>Listings</span>
 </div>
 
-<div class="page-head">
-    <div class="page-head__top">
-        <div>
-            <h1>Listing Oversight</h1>
-            <p class="text-muted"><strong style="color:var(--text-mid)"><?= number_format($total) ?></strong> total listings on the platform.</p>
-        </div>
+<div class="biz-toolbar" style="margin-bottom:1rem">
+    <div class="biz-stat-inline">
+        <strong><?= number_format($total) ?></strong>
+        <span>total listings</span>
     </div>
 </div>
 
@@ -192,4 +199,5 @@ require_once __DIR__ . '/../../partials/header.php';
     <?php endif; ?>
 </div>
 
+<?php renderAdminShellEnd(); ?>
 <?php require_once __DIR__ . '/../../partials/footer.php'; ?>

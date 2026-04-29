@@ -71,6 +71,126 @@
         on(mq, 'change', e => { if (e.matches && isOpen) closeNav(); });
     })();
 
+    (function initBusinessShell() {
+        const shell = $('[data-biz-shell]');
+        const toggle = $('#biz-sidebar-toggle');
+        const sidebar = $('#biz-sidebar');
+        const backdrop = $('#biz-shell-backdrop');
+        if (!shell || !toggle || !sidebar) return;
+
+        let open = false;
+        function sync() {
+            shell.classList.toggle('is-open', open);
+            toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            document.body.style.overflow = open ? 'hidden' : '';
+        }
+
+        on(toggle, 'click', () => { open = !open; sync(); });
+        on(backdrop, 'click', () => { open = false; sync(); });
+        on(document, 'keydown', (e) => {
+            if (e.key === 'Escape' && open) { open = false; sync(); }
+        });
+
+        $$('.biz-nav-item, .biz-logout-btn', shell).forEach((el) => {
+            on(el, 'click', () => {
+                if (window.matchMedia('(max-width: 1024px)').matches) {
+                    open = false;
+                    sync();
+                }
+            });
+        });
+    })();
+
+    (function initUserShell() {
+        const shell = $('[data-user-shell]');
+        const toggle = $('#usr-sidebar-toggle');
+        const sidebar = $('#usr-sidebar');
+        const backdrop = $('#usr-shell-backdrop');
+        if (!shell || !toggle || !sidebar) return;
+
+        let open = false;
+        function sync() {
+            shell.classList.toggle('is-open', open);
+            toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            document.body.style.overflow = open ? 'hidden' : '';
+        }
+
+        on(toggle, 'click', () => { open = !open; sync(); });
+        on(backdrop, 'click', () => { open = false; sync(); });
+        on(document, 'keydown', (e) => {
+            if (e.key === 'Escape' && open) { open = false; sync(); }
+        });
+
+        $$('.usr-nav-item, .usr-logout-btn', shell).forEach((el) => {
+            on(el, 'click', () => {
+                if (window.matchMedia('(max-width: 1024px)').matches) {
+                    open = false;
+                    sync();
+                }
+            });
+        });
+    })();
+
+    (function initCharityShell() {
+        const shell = $('[data-char-shell]');
+        const toggle = $('#char-sidebar-toggle');
+        const sidebar = $('#char-sidebar');
+        const backdrop = $('#char-shell-backdrop');
+        if (!shell || !toggle || !sidebar) return;
+
+        let open = false;
+        function sync() {
+            shell.classList.toggle('is-open', open);
+            toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            document.body.style.overflow = open ? 'hidden' : '';
+        }
+
+        on(toggle, 'click', () => { open = !open; sync(); });
+        on(backdrop, 'click', () => { open = false; sync(); });
+        on(document, 'keydown', (e) => {
+            if (e.key === 'Escape' && open) { open = false; sync(); }
+        });
+
+        $$('.char-nav-item, .char-logout-btn', shell).forEach((el) => {
+            on(el, 'click', () => {
+                if (window.matchMedia('(max-width: 1024px)').matches) {
+                    open = false;
+                    sync();
+                }
+            });
+        });
+    })();
+
+    (function initAdminShell() {
+        const shell = $('[data-admin-shell]');
+        const toggle = $('#admin-sidebar-toggle');
+        const sidebar = $('#admin-sidebar');
+        const backdrop = $('#admin-shell-backdrop');
+        if (!shell || !toggle || !sidebar) return;
+
+        let open = false;
+        function sync() {
+            shell.classList.toggle('is-open', open);
+            toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            document.body.style.overflow = open ? 'hidden' : '';
+        }
+
+        on(toggle, 'click', () => { open = !open; sync(); });
+        on(backdrop, 'click', () => { open = false; sync(); });
+        on(document, 'keydown', (e) => {
+            if (e.key === 'Escape' && open) { open = false; sync(); }
+        });
+
+        $$('.admin-nav-item, .admin-logout-btn', shell).forEach((el) => {
+            on(el, 'click', () => {
+                if (window.matchMedia('(max-width: 1024px)').matches) {
+                    open = false;
+                    sync();
+                }
+            });
+        });
+    })();
+
 
     /* ══════════════════════════════════════════════════════════
        2. Flash Message Dismissal
