@@ -60,7 +60,6 @@ if (!function_exists('renderBusinessShellStart')) {
                     <?= businessShellItem(baseUrl('modules/reservations/index.php'), 'Reservations', 'reservations', $current === 'reservations') ?>
                     <?= businessShellItem(baseUrl('modules/reports/index.php'), 'Reports', 'reports', $current === 'reports') ?>
                     <?= businessShellItem(baseUrl('modules/dashboard/impact.php'), 'My Impact', 'impact', $current === 'impact') ?>
-                    <?= businessShellItem(baseUrl('modules/profile/business_profile.php#account'), 'Account', 'account', $current === 'account') ?>
                     <?= businessShellItem(baseUrl('modules/profile/business_profile.php#details'), 'Profile', 'profile', $current === 'profile') ?>
                 </nav>
 

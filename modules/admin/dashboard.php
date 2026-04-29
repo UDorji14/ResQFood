@@ -39,38 +39,7 @@ renderAdminShellStart(
 );
 ?>
 
-<!-- ── Admin Hero ───────────────────────────────────────────── -->
-<div class="admin-hero">
-    <div class="admin-hero__inner">
-        <div>
-            <div class="admin-hero__eyebrow">ResQFood - Control Centre</div>
-            <div class="admin-hero__title">Control Centre Snapshot</div>
-            <div class="admin-hero__sub">Platform overview &middot; <?= date('l, d M Y') ?></div>
-        </div>
-        <div class="admin-hero__actions">
-            <?php if ($stats['pending_verif'] > 0): ?>
-            <a href="<?= baseUrl('modules/admin/users.php?status=pending') ?>" class="admin-hero__badge admin-hero__badge--urgent">
-                <span class="badge-dot"></span>
-                <?= $stats['pending_verif'] ?> pending verification
-            </a>
-            <?php endif; ?>
-            <?php if ($stats['open_reports'] > 0): ?>
-            <a href="<?= baseUrl('modules/admin/reports.php?status=open') ?>" class="admin-hero__badge admin-hero__badge--urgent">
-                <span class="badge-dot"></span>
-                <?= $stats['open_reports'] ?> open report<?= $stats['open_reports'] !== 1 ? 's' : '' ?>
-            </a>
-            <?php endif; ?>
-            <a href="<?= baseUrl('modules/admin/users.php') ?>" class="admin-hero__badge">
-                <svg viewBox="0 0 16 16" width="13" fill="none"><circle cx="8" cy="5" r="3" stroke="currentColor" stroke-width="1.4"/><path d="M2 13c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-                Manage Users
-            </a>
-            <!-- <a href="<?= baseUrl('modules/admin/impact.php') ?>" class="admin-hero__badge">
-                <svg viewBox="0 0 16 16" width="13" fill="none"><path d="M2 12l3-4 3 2 3-5 3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                Impact Report
-            </a> -->
-        </div>
-    </div>
-</div>
+
 
 <!-- ── Users Stats ──────────────────────────────────────────── -->
 <div class="admin-section-label">Users</div>

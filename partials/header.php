@@ -24,11 +24,13 @@ function _navActive(string $segment): string {
     <meta name="description" content="ResQFood - Redistribute surplus food, feed communities.">
     <title><?= e($pageTitle) ?> - ResQFood</title>
     <link rel="stylesheet" href="<?= asset('css/app.css') ?>">
+    <link rel="stylesheet" href="<?= asset('css/custom_dashboard.css') ?>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 </head>
 <body class="app-body" data-role="<?= e($_role) ?>">
+<?= displayFlash('toast') ?>
 
 <!-- ═══════════════════════════════════════════════════════════
      TOP NAVIGATION
@@ -178,4 +180,3 @@ function _navActive(string $segment): string {
 ═══════════════════════════════════════════════════════════ -->
 <main class="app-main" id="main-content">
     <div class="app-container">
-        <?= displayFlash() ?>

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ResQFood — Application JavaScript
  * ────────────────────────────────────
  * Modular, vanilla JS. No dependencies.
@@ -230,23 +230,44 @@
             on(btn, 'click', () => dismissFlash(flash));
         });
 
-        // Auto-dismiss after 6 seconds (success/info only)
-        $$('.flash--success, .flash--info').forEach(flash => {
-            setTimeout(() => dismissFlash(flash), 6000);
+        // Auto-dismiss toast flashes quickly without affecting layout.
+        $$('[data-flash-variant="toast"] .flash, .flash-container--toast .flash').forEach(flash => {
+            const timeoutMs = (flash.classList.contains('flash--warning') || flash.classList.contains('flash--error'))
+                ? 2400
+                : 1800;
+            setTimeout(() => dismissFlash(flash), timeoutMs);
         });
 
         function dismissFlash(el) {
-            el.style.transition = 'opacity 300ms ease, transform 300ms ease, max-height 300ms ease, margin 300ms ease, padding 300ms ease';
-            el.style.opacity    = '0';
-            el.style.transform  = 'translateY(-4px)';
-            el.style.maxHeight  = el.offsetHeight + 'px';
-            requestAnimationFrame(() => {
-                el.style.maxHeight = '0';
-                el.style.margin    = '0';
-                el.style.padding   = '0';
-                el.style.border    = 'none';
-            });
-            setTimeout(() => el.remove(), 350);
+            if (!el || el.dataset.dismissing === '1') return;
+            el.dataset.dismissing = '1';
+
+            const isToast = !!el.closest('.flash-container--toast');
+            el.style.transition = isToast
+                ? 'opacity 220ms ease, transform 220ms ease'
+                : 'opacity 300ms ease, transform 300ms ease, max-height 300ms ease, margin 300ms ease, padding 300ms ease';
+            el.style.opacity   = '0';
+            el.style.transform = 'translateY(-6px)';
+
+            if (!isToast) {
+                el.style.maxHeight = el.offsetHeight + 'px';
+                requestAnimationFrame(() => {
+                    el.style.maxHeight = '0';
+                    el.style.margin    = '0';
+                    el.style.padding   = '0';
+                    el.style.border    = 'none';
+                });
+                setTimeout(() => el.remove(), 350);
+                return;
+            }
+
+            setTimeout(() => {
+                const container = el.closest('.flash-container');
+                el.remove();
+                if (container && !container.querySelector('.flash')) {
+                    container.remove();
+                }
+            }, 240);
         }
     })();
 

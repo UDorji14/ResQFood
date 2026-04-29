@@ -164,15 +164,41 @@ $dashboardActions = '<a href="' . baseUrl('modules/reservations/index.php') . '"
 renderBusinessShellStart('dashboard', 'Business Dashboard', $greeting . ', ' . currentUserName() . '. Here is your operations snapshot for ' . date('d M Y') . '.', $dashboardActions);
 ?>
 
-<div class="biz-snapshot">
-    <article class="biz-snapshot__lead">
-        <p class="biz-kicker">Operations Snapshot</p>
-        <h2><?= (int) $stats['active'] ?> listings currently available</h2>
-        <p><?= (int) $stats['reserved'] ?> pickups are waiting confirmation and <?= (int) $stats['collected'] ?> have been completed.</p>
-    </article>
-    <article class="biz-snapshot__metric"><span>Total Listings</span><strong><?= (int) $stats['total'] ?></strong></article>
-    <article class="biz-snapshot__metric"><span>Pending Pickups</span><strong><?= (int) $stats['reserved'] ?></strong></article>
-    <article class="biz-snapshot__metric"><span>Completed</span><strong><?= (int) $stats['collected'] ?></strong></article>
+<div class="dash-welcome dash-welcome--business">
+    <div class="dash-welcome__inner">
+        <div>
+            <div class="dash-welcome__eyebrow">
+                <span class="role-badge role-badge--light" style="background:rgba(255,255,255,0.2);color:#fff;padding:0.2rem 0.6rem;border-radius:12px;font-size:0.75rem;font-weight:600;margin-right:10px;">Business Account</span>
+                <span class="dash-welcome__date" style="font-size:0.85rem;opacity:0.8;"><?= date('l, d F Y') ?></span>
+            </div>
+            <div class="dash-welcome__greeting" style="margin-top:0.8rem;"><?= $greeting ?>, <?= e(currentUserName()) ?></div>
+            <p class="dash-welcome__sub">
+                You have <strong><?= (int) $stats['active'] ?></strong> listings currently available. <?= (int) $stats['reserved'] ?> pickups are waiting confirmation.
+            </p>
+        </div>
+        <a href="<?= baseUrl('modules/listings/create.php') ?>" class="dash-welcome__cta" style="margin-top:1rem;">
+            <svg viewBox="0 0 18 18" width="14" fill="none"><circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M9 5v8M5 9h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            Post Food
+        </a>
+    </div>
+</div>
+
+<div class="stat-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem;margin-bottom:2rem;">
+    <div class="stat-card stat-card--olive">
+        <div class="stat-card__icon-box"><svg viewBox="0 0 20 20" width="18" fill="none"><rect x="3" y="4" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M7 8h6M7 11.5h4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></div>
+        <div class="stat-card__value"><?= (int) $stats['total'] ?></div>
+        <div class="stat-card__label">Total Listings</div>
+    </div>
+    <div class="stat-card stat-card--amber">
+        <div class="stat-card__icon-box"><svg viewBox="0 0 20 20" width="18" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.4"/><path d="M10 7v3l2.5 2.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></div>
+        <div class="stat-card__value"><?= (int) $stats['reserved'] ?></div>
+        <div class="stat-card__label">Pending Pickups</div>
+    </div>
+    <div class="stat-card stat-card--terra">
+        <div class="stat-card__icon-box"><svg viewBox="0 0 20 20" width="18" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.4"/><path d="M7 10l2 2 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="stat-card__value"><?= (int) $stats['collected'] ?></div>
+        <div class="stat-card__label">Completed</div>
+    </div>
 </div>
 
 <?php if (($profile['verification_status'] ?? '') !== 'verified'): ?>

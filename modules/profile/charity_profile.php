@@ -175,21 +175,23 @@ renderCharityShellStart('profile', 'Charity Profile', 'Manage your organisation 
 ?>
 
 <!-- Profile Hero -->
-<div class="profile-hero" style="background:linear-gradient(135deg,rgba(74,103,65,.85) 0%, rgba(122,154,106,.9) 55%, rgba(196,145,62,.82) 100%)">
-    <div class="profile-hero__inner">
-        <div class="profile-hero__avatar" style="background:rgba(255,255,255,0.2)">
-            <?= e(mb_strtoupper(mb_substr($profile['organization_name'] ?? $profile['full_name'] ?? 'C', 0, 1))) ?>
+<div class="dash-welcome dash-welcome--charity">
+    <div class="dash-welcome__inner" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+        <div style="display:flex; align-items:center; gap:1.5rem;">
+            <div style="background:rgba(255,255,255,0.2); width:64px; height:64px; display:flex; align-items:center; justify-content:center; border-radius:50%; font-size:2rem; font-weight:800; border:2px solid rgba(255,255,255,0.4);">
+                <?= e(mb_strtoupper(mb_substr($profile['organization_name'] ?? $profile['full_name'] ?? 'C', 0, 1))) ?>
+            </div>
+            <div>
+                <div class="dash-welcome__greeting"><?= e($profile['organization_name'] ?: ($profile['full_name'] ?? 'Your Organisation')) ?></div>
+                <p class="dash-welcome__sub">
+                    <?= e($profile['email'] ?? '') ?>
+                    <?php if (!empty($profile['city'])): ?> &middot; <?= e($profile['city']) ?><?php endif; ?>
+                    <?php if (!empty($profile['contact_person'])): ?> &middot; Contact: <?= e($profile['contact_person']) ?><?php endif; ?>
+                    &middot; Since <?= formatDate($profile['joined_at'] ?? '', 'M Y') ?>
+                </p>
+            </div>
         </div>
-        <div class="profile-hero__info">
-            <h1><?= e($profile['organization_name'] ?: ($profile['full_name'] ?? 'Your Organisation')) ?></h1>
-            <p>
-                <?= e($profile['email'] ?? '') ?>
-                <?php if (!empty($profile['city'])): ?> &middot; <?= e($profile['city']) ?><?php endif; ?>
-                <?php if (!empty($profile['contact_person'])): ?> &middot; Contact: <?= e($profile['contact_person']) ?><?php endif; ?>
-                &middot; Since <?= formatDate($profile['joined_at'] ?? '', 'M Y') ?>
-            </p>
-        </div>
-        <div class="profile-hero__actions">
+        <div>
             <?= verificationBadge($profile['verification_status'] ?? 'pending') ?>
         </div>
     </div>

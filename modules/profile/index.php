@@ -112,21 +112,24 @@ if (currentUserRole() === 'general_user') {
     renderUserShellStart('profile', 'My Profile', 'Manage your account details and security settings.');
 }
 ?>
-<div class="profile-hero">
-    <div class="profile-hero__inner">
-        <div class="profile-hero__avatar">
-            <?= e(mb_strtoupper(mb_substr($user['full_name'] ?? 'U', 0, 1))) ?>
+<?php $roleClass = currentUserRole() === 'general_user' ? 'user' : currentUserRole(); ?>
+<div class="dash-welcome dash-welcome--<?= e($roleClass) ?>">
+    <div class="dash-welcome__inner" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+        <div style="display:flex; align-items:center; gap:1.5rem;">
+            <div style="background:rgba(255,255,255,0.2); width:64px; height:64px; display:flex; align-items:center; justify-content:center; border-radius:50%; font-size:2rem; font-weight:800; border:2px solid rgba(255,255,255,0.4);">
+                <?= e(mb_strtoupper(mb_substr($user['full_name'] ?? 'U', 0, 1))) ?>
+            </div>
+            <div>
+                <div class="dash-welcome__greeting"><?= e($user['full_name'] ?? 'My Profile') ?></div>
+                <p class="dash-welcome__sub">
+                    <?= e($user['email'] ?? '') ?>
+                    <?php if (!empty($user['phone'])): ?> &middot; <?= e($user['phone']) ?><?php endif; ?>
+                    &middot; Member since <?= formatDate($user['created_at'] ?? '', 'M Y') ?>
+                </p>
+            </div>
         </div>
-        <div class="profile-hero__info">
-            <h1><?= e($user['full_name'] ?? 'My Profile') ?></h1>
-            <p>
-                <?= e($user['email'] ?? '') ?>
-                <?php if (!empty($user['phone'])): ?> &middot; <?= e($user['phone']) ?><?php endif; ?>
-                &middot; Member since <?= formatDate($user['created_at'] ?? '', 'M Y') ?>
-            </p>
-        </div>
-        <div class="profile-hero__actions">
-            <span class="role-badge role-badge--<?= e(roleBadgeClass($user['role'] ?? 'general_user')) ?>">
+        <div>
+            <span class="role-badge role-badge--light" style="background:rgba(255,255,255,0.2);color:#fff;padding:0.4rem 0.8rem;border-radius:12px;font-size:0.85rem;font-weight:600;">
                 <?= e(roleLabel($user['role'] ?? 'general_user')) ?>
             </span>
         </div>

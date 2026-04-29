@@ -49,8 +49,7 @@ if (!function_exists('renderUserShellStart')) {
                     <?= userShellItem(baseUrl('modules/listings/browse.php'), 'Browse Food', 'browse', $currentKey === 'browse') ?>
                     <?= userShellItem(baseUrl('modules/reservations/my.php'), 'My Reservations', 'reservations', $currentKey === 'reservations') ?>
                     <?= userShellItem(baseUrl('modules/reports/index.php'), 'Reports', 'reports', $currentKey === 'reports') ?>
-                    <?= userShellItem(baseUrl('modules/profile/index.php#account'), 'Account', 'account', $currentKey === 'account') ?>
-                    <?= userShellItem(baseUrl('modules/profile/index.php#account'), 'Profile', 'profile', $currentKey === 'profile') ?>
+                    <?= userShellItem(baseUrl('modules/profile/index.php'), 'Profile', 'profile', $currentKey === 'profile') ?>
                 </nav>
                 <div class="usr-sidebar__foot">
                     <div class="usr-user-mini">

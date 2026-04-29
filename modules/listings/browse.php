@@ -60,13 +60,15 @@ if (currentUserRole() === 'general_user') {
 ?>
 
 <!-- ── Browse Hero ─────────────────────────────────────────────── -->
-<div class="browse-hero">
-    <div class="browse-hero__inner">
+<!-- ── Browse Hero ─────────────────────────────────────────────── -->
+<?php $roleClass = currentUserRole() === 'general_user' ? 'user' : currentUserRole(); ?>
+<div class="dash-welcome dash-welcome--<?= e($roleClass) ?>">
+    <div class="dash-welcome__inner" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
         <div>
-            <h1>Browse Available Food</h1>
-            <p>
+            <div class="dash-welcome__greeting">Browse Available Food</div>
+            <p class="dash-welcome__sub">
                 <?php if ($totalCount > 0): ?>
-                    <strong style="color:rgba(255,255,255,.9)"><?= $totalCount ?></strong>
+                    <strong style="color:rgba(255,255,255,1)"><?= $totalCount ?></strong>
                     listing<?= $totalCount !== 1 ? 's' : '' ?> available right now
                     <?php if ($hasFilters): ?> - filtered<?php endif; ?>
                 <?php else: ?>
@@ -75,7 +77,7 @@ if (currentUserRole() === 'general_user') {
             </p>
         </div>
         <?php if (in_array(currentUserRole(), ['general_user', 'charity'])): ?>
-        <a href="<?= baseUrl('modules/reservations/my.php') ?>" class="btn--hero-outline">
+        <a href="<?= baseUrl('modules/reservations/my.php') ?>" class="dash-welcome__cta">
             <svg viewBox="0 0 18 18" width="14" fill="none" style="margin-right:.35rem"><rect x="2" y="3" width="14" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M6 3V1m6 2V1M2 7h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
             My Reservations
         </a>

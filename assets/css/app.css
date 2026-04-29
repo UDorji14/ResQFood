@@ -658,8 +658,9 @@
 .char-user-mini span { display:block; font-size:0.76rem; color:#7a5a4a; }
 
 .char-workspace {
-    padding: 0 1.15rem 1.8rem;
+    padding: 2.1rem 1.55rem 1.9rem;
     min-width: 0;
+    margin-top: 0;
     height: 100vh;
     overflow-y: auto;
     overflow-x: hidden;
@@ -667,7 +668,7 @@
 
 .char-topbar {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
     gap: 0.8rem;
     margin-bottom: 1rem;
@@ -675,7 +676,14 @@
 
 .char-topbar h1 { margin: 0 0 .25rem; font-size: 1.35rem; color: #2b201a; }
 .char-topbar p { margin: 0; color: #7a5a4a; font-size: .9rem; }
-.char-topbar__actions { display:flex; gap:.55rem; }
+.char-topbar__actions {
+    display: flex;
+    gap: 0.55rem;
+    padding-top: 0.15rem;
+    padding-right: 0.1rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
 .char-content { display:flex; flex-direction:column; gap:1rem; min-width:0; }
 
 .char-sidebar-toggle {
@@ -740,6 +748,7 @@
 }
 
 @media (max-width: 640px) {
+    .char-workspace { padding-top: 1.2rem; }
     .char-topbar { flex-wrap: wrap; }
     .char-topbar__actions { width: 100%; }
     .char-topbar__actions .btn { flex: 1; justify-content: center; }
@@ -2218,6 +2227,17 @@ input[type='file'].form-control::file-selector-button:hover {
     gap: 0.6rem;
     margin-bottom: 1.5rem;
 }
+.flash-container--toast {
+    position: fixed;
+    top: 0.9rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1200;
+    width: min(94vw, 520px);
+    margin: 0;
+    padding: 0;
+    pointer-events: none;
+}
 .flash {
     display: flex;
     align-items: flex-start;
@@ -2230,6 +2250,11 @@ input[type='file'].form-control::file-selector-button:hover {
     line-height: 1.5;
     animation: flashIn 0.22s var(--ease-out);
     position: relative;
+}
+.flash-container--toast .flash {
+    box-shadow: 0 12px 34px rgba(22, 26, 21, 0.16);
+    backdrop-filter: blur(4px);
+    pointer-events: auto;
 }
 .flash svg { flex-shrink: 0; margin-top: 1px; }
 .flash--success { background: rgba(74,103,65,0.08);  border-color: rgba(74,103,65,0.28);  color: var(--olive-deep); }
@@ -2258,6 +2283,13 @@ input[type='file'].form-control::file-selector-button:hover {
     transition: opacity var(--dur-fast);
 }
 .flash__close:hover { opacity: 1; }
+
+@media (max-width: 640px) {
+    .flash-container--toast {
+        top: 0.65rem;
+        width: calc(100vw - 1rem);
+    }
+}
 
 /* ── 13. Notice / Alert Banners ──────────────────────────────── */
 .notice {

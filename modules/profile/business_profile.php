@@ -184,21 +184,23 @@ renderBusinessShellStart('profile', 'Business Profile', 'Manage business identit
 ?>
 
 <!-- Profile Hero -->
-<div class="profile-hero">
-    <div class="profile-hero__inner">
-        <div class="profile-hero__avatar">
-            <?= e(mb_strtoupper(mb_substr($profile['full_name'] ?? 'U', 0, 1))) ?>
+<div class="dash-welcome dash-welcome--business">
+    <div class="dash-welcome__inner" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+        <div style="display:flex; align-items:center; gap:1.5rem;">
+            <div style="background:rgba(255,255,255,0.2); width:64px; height:64px; display:flex; align-items:center; justify-content:center; border-radius:50%; font-size:2rem; font-weight:800; border:2px solid rgba(255,255,255,0.4);">
+                <?= e(mb_strtoupper(mb_substr($profile['full_name'] ?? 'U', 0, 1))) ?>
+            </div>
+            <div>
+                <div class="dash-welcome__greeting"><?= e($profile['business_name'] ?: ($profile['full_name'] ?? 'Your Business')) ?></div>
+                <p class="dash-welcome__sub">
+                    <?= e($profile['email'] ?? '') ?>
+                    <?php if (!empty($profile['city'])): ?> &middot; <?= e($profile['city']) ?><?php endif; ?>
+                    <?php if (!empty($profile['business_type'])): ?> &middot; <?= e($profile['business_type']) ?><?php endif; ?>
+                    &middot; Member since <?= formatDate($profile['joined_at'] ?? '', 'M Y') ?>
+                </p>
+            </div>
         </div>
-        <div class="profile-hero__info">
-            <h1><?= e($profile['business_name'] ?: ($profile['full_name'] ?? 'Your Business')) ?></h1>
-            <p>
-                <?= e($profile['email'] ?? '') ?>
-                <?php if (!empty($profile['city'])): ?> &middot; <?= e($profile['city']) ?><?php endif; ?>
-                <?php if (!empty($profile['business_type'])): ?> &middot; <?= e($profile['business_type']) ?><?php endif; ?>
-                &middot; Member since <?= formatDate($profile['joined_at'] ?? '', 'M Y') ?>
-            </p>
-        </div>
-        <div class="profile-hero__actions">
+        <div>
             <?= verificationBadge($profile['verification_status'] ?? 'pending') ?>
         </div>
     </div>
