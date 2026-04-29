@@ -23,7 +23,7 @@ function _navActive(string $segment): string {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="ResQFood - Redistribute surplus food, feed communities.">
     <title><?= e($pageTitle) ?> - ResQFood</title>
-    <link rel="stylesheet" href="<?= baseUrl('assets/css/app.css') ?>">
+    <link rel="stylesheet" href="<?= asset('css/app.css') ?>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">

@@ -114,7 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Create your free ResQFood account and join the food rescue community.">
     <title>Create Account - ResQFood</title>
-    <link rel="stylesheet" href="<?= baseUrl('assets/css/app.css') ?>">
+    <link rel="stylesheet" href="<?= asset('css/app.css') ?>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&display=swap"
           rel="stylesheet" media="print" onload="this.media='all'">
@@ -320,7 +320,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             <?php endif; ?>
 
-            <form method="POST" action="register.php" novalidate id="reg-form">
+            <form method="POST" action="<?= url('register.php') ?>" novalidate id="reg-form">
                 <?= csrfField() ?>
 
                 <!-- Role Selection -->
@@ -489,7 +489,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 </div><!-- /.auth-shell -->
 
-<script src="<?= baseUrl('assets/js/app.js') ?>"></script>
+<script src="<?= asset('js/app.js') ?>"></script>
 <script>
 (function () {
     /* Role notice toggling */

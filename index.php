@@ -1,3 +1,6 @@
+<?php
+require_once __DIR__ . '/includes/functions.php';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;1,9..144,500;1,9..144,600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="<?= asset('css/style.css') ?>">
 </head>
 <body>
 
@@ -37,8 +40,8 @@
                 <li><a href="#contact">Contact</a></li>
             </ul>
             <div class="nav-ctas">
-                <a href="login.php" class="btn btn-ghost btn-sm">Log In</a>
-                <a href="register.php" class="btn btn-primary btn-sm">Get Started</a>
+                <a href="<?= url('login.php') ?>" class="btn btn-ghost btn-sm">Log In</a>
+                <a href="<?= url('register.php') ?>" class="btn btn-primary btn-sm">Get Started</a>
             </div>
         </div>
     </nav>
@@ -71,7 +74,7 @@
             </h1>
             <p class="hero-sub h-enter h-enter-3">Connecting food businesses, communities, and charities - so good food reaches people before it goes to waste.</p>
             <div class="hero-ctas h-enter h-enter-4">
-                <a href="register.php" class="btn btn-primary btn-lg">Get Started</a>
+                <a href="<?= url('register.php') ?>" class="btn btn-primary btn-lg">Get Started</a>
                 <a href="#how-it-works" class="btn btn-outline btn-lg">How It Works</a>
             </div>
             <div class="hero-roles h-enter h-enter-5">
@@ -851,8 +854,8 @@
         <h2 class="cta-h">Ready to turn surplus<br>into community value?</h2>
         <p class="cta-sub">Whether you run a food business, want to reduce local waste, or support your community - ResQFood connects you to the right people at the right time.</p>
         <div class="cta-actions">
-            <a href="register.php" class="btn btn-cream btn-lg">Get Started</a>
-            <a href="login.php" class="btn btn-outline-cream btn-lg">Explore Listings</a>
+            <a href="<?= url('register.php') ?>" class="btn btn-cream btn-lg">Get Started</a>
+            <a href="<?= url('login.php') ?>" class="btn btn-outline-cream btn-lg">Explore Listings</a>
         </div>
     </div>
 
@@ -911,6 +914,6 @@
     </div>
 </footer>
 
-<script src="assets/js/main.js" defer></script>
+<script src="<?= asset('js/main.js') ?>" defer></script>
 </body>
 </html>
