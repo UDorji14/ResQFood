@@ -35,6 +35,16 @@ if (in_array($listing['status'], ['collected', 'cancelled'])) {
 }
 
 $errors = [];
+
+// How much quantity is currently tied up in active reservations?
+$reservedQtyStmt = db()->prepare('
+    SELECT COALESCE(SUM(reserved_quantity), 0) AS total_reserved
+    FROM   reservations
+    WHERE  listing_id = ? AND reservation_status = "reserved"
+');
+$reservedQtyStmt->execute([$listingId]);
+$totalReserved = (float) $reservedQtyStmt->fetchColumn();
+
 $old = [
     'title'          => $listing['title'],
     'category'       => $listing['category']       ?? '',
@@ -73,28 +83,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($data['category'] !== '') validateEnum($data['category'], listingCategoryOptions(), 'category', $errors);
     if ($data['unit'] !== '')     validateEnum($data['unit'],     listingUnitOptions(),    'unit',     $errors);
 
+    // Quantity cannot be reduced below already-reserved amount
+    $newQty = (float) $data['quantity'];
+    if (empty($errors['quantity']) && $newQty < $totalReserved) {
+        $errors['quantity'] = 'Cannot reduce quantity below what is already reserved ('
+            . formatQty($totalReserved) . ' ' . $data['unit'] . ' reserved). Cancel reservations first.';
+    }
+
     if (empty($errors)) {
         try {
             $pdo = db();
             $pdo->beginTransaction();
 
+            // available_quantity = new total – already-reserved portion
+            $newAvailable = max(0, $newQty - $totalReserved);
+            // If all available is gone, keep listing as 'reserved'; else set available
+            $newStatus = $listing['status'];
+            if ($newAvailable <= 0 && $listing['status'] === 'available') {
+                $newStatus = 'reserved';
+            } elseif ($newAvailable > 0 && $listing['status'] === 'reserved') {
+                $newStatus = 'available';
+            }
+
             $pdo->prepare('
                 UPDATE food_listings
-                SET    title = ?, category = ?, quantity = ?, unit = ?,
-                       description = ?, pickup_address = ?,
+                SET    title = ?, category = ?, quantity = ?, available_quantity = ?,
+                       unit = ?, description = ?, pickup_address = ?,
                        pickup_start = ?, pickup_end = ?, expiry_time = ?,
-                       updated_at = NOW()
+                       status = ?, updated_at = NOW()
                 WHERE  id = ?
             ')->execute([
                 $data['title'],
                 $data['category']       ?: null,
-                $data['quantity'],
+                $newQty,
+                $newAvailable,
                 $data['unit'],
                 $data['description']    ?: null,
                 $data['pickup_address'] ?: null,
                 $data['pickup_start'],
                 $data['pickup_end'],
                 $data['expiry_time']    ?: null,
+                $newStatus,
                 $listingId,
             ]);
 
@@ -150,6 +179,16 @@ require_once __DIR__ . '/../../partials/header.php';
     <span><?= e($errors['_general']) ?></span>
 </div>
 <?php endif; ?>
+
+<?php if ($totalReserved > 0): ?>
+<div class="notice notice--warning" style="margin-bottom:1.25rem">
+    <svg viewBox="0 0 20 20" width="18" fill="none"><path d="M10 3L2 17h16L10 3z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M10 9v4m0 2h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    <div class="notice__body">
+        <strong><?= formatQty($totalReserved) ?> <?= e($listing['unit']) ?> already reserved.</strong>
+        You may increase the quantity freely, but cannot reduce it below the reserved amount.
+    </div>
+</div>
+<?php endif ?>
 
 <form method="POST" action="" enctype="multipart/form-data" novalidate id="edit-form">
     <?= csrfField() ?>

@@ -66,15 +66,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         logReservationStatus($reservationId, 'reserved', 'collected', $uid, 'Pickup confirmed by ' . currentUserName());
 
-        // Mark listing as collected
-        $pdo->prepare('
-            UPDATE food_listings
-            SET    status = "collected", updated_at = NOW()
-            WHERE  id = ?
-        ')->execute([$reservation['listing_id']]);
-
-        // Create impact record
+        // Create impact record (uses reserved_quantity from this reservation)
         createImpactRecord($reservation['listing_id'], $reservationId);
+
+        // Mark listing as collected only when:
+        // - no more available quantity AND no other active 'reserved' reservations
+        $checkStmt = $pdo->prepare('
+            SELECT available_quantity,
+                   (SELECT COUNT(*) FROM reservations
+                    WHERE  listing_id = ? AND reservation_status = "reserved") AS active_res
+            FROM   food_listings
+            WHERE  id = ?
+            LIMIT  1
+        ');
+        $checkStmt->execute([$reservation['listing_id'], $reservation['listing_id']]);
+        $listingCheck = $checkStmt->fetch();
+
+        if ($listingCheck
+            && (float) $listingCheck['available_quantity'] <= 0
+            && (int) $listingCheck['active_res'] === 0
+        ) {
+            $pdo->prepare('
+                UPDATE food_listings
+                SET    status = "collected", updated_at = NOW()
+                WHERE  id = ?
+            ')->execute([$reservation['listing_id']]);
+        }
 
         // Notify the person who reserved
         createNotification(
@@ -155,7 +172,10 @@ require_once __DIR__ . '/../../partials/header.php';
                     <?= e($reservation['title']) ?>
                 </a>
                 <div style="display:flex;gap:1.25rem;flex-wrap:wrap;font-size:.81rem;color:var(--text-muted)">
-                    <span><strong style="color:var(--text-mid)">Qty:</strong> <?= e($reservation['quantity'] . ' ' . $reservation['unit']) ?></span>
+                    <span>
+                        <strong style="color:var(--text-mid)">Reserved:</strong>
+                        <?= e(formatQty((float)($reservation['reserved_quantity'] ?? 1)) . ' ' . $reservation['unit']) ?>
+                    </span>
                     <span><strong style="color:var(--text-mid)">Window:</strong> <?= formatDate($reservation['pickup_start'], 'd M, H:i') ?> &ndash; <?= formatDate($reservation['pickup_end'], 'H:i') ?></span>
                 </div>
             </div>

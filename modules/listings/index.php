@@ -8,6 +8,7 @@ require_once __DIR__ . '/../../config/db.php';
 require_once __DIR__ . '/../../includes/functions.php';
 require_once __DIR__ . '/../../includes/auth.php';
 require_once __DIR__ . '/../../includes/flash.php';
+require_once __DIR__ . '/../../includes/csrf.php';
 require_once __DIR__ . '/../../includes/listings.php';
 
 requireRole(['business', 'admin']);
@@ -116,7 +117,7 @@ require_once __DIR__ . '/../../partials/header.php';
             <thead>
                 <tr>
                     <th>Listing</th>
-                    <th>Qty</th>
+                    <th>Avail / Total</th>
                     <th>Pickup Window</th>
                     <th>Status</th>
                     <th style="text-align:center">Reservations</th>
@@ -150,8 +151,13 @@ require_once __DIR__ . '/../../partials/header.php';
                     </td>
 
                     <!-- Quantity -->
-                    <td style="white-space:nowrap;font-size:.85rem;font-weight:600">
-                        <?= e($l['quantity'] . ' ' . $l['unit']) ?>
+                    <td style="white-space:nowrap;font-size:.85rem">
+                        <?php
+                        $lAvail = (float)($l['available_quantity'] ?? $l['quantity']);
+                        $lTotal = (float)$l['quantity'];
+                        ?>
+                        <span style="font-weight:700;color:var(--olive-deep)"><?= e(formatQty($lAvail)) ?></span>
+                        <span style="color:var(--text-muted);font-size:.8rem"> / <?= e(formatQty($lTotal)) ?> <?= e($l['unit']) ?></span>
                     </td>
 
                     <!-- Pickup window -->

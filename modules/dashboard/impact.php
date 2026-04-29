@@ -13,6 +13,7 @@ require_once __DIR__ . '/../../config/db.php';
 require_once __DIR__ . '/../../includes/functions.php';
 require_once __DIR__ . '/../../includes/auth.php';
 require_once __DIR__ . '/../../includes/flash.php';
+require_once __DIR__ . '/../../includes/csrf.php';
 require_once __DIR__ . '/../../includes/admin.php';
 require_once __DIR__ . '/../../includes/listings.php';
 
@@ -105,140 +106,176 @@ $pageTitle = $role === 'admin' ? 'Impact Dashboard' : 'My Impact';
 require_once __DIR__ . '/../../partials/header.php';
 ?>
 
+<div class="breadcrumb">
+    <a href="<?= baseUrl('dashboard.php') ?>">Dashboard</a>
+    <?php if ($role === 'admin'): ?>
+    <a href="<?= baseUrl('modules/admin/dashboard.php') ?>">Admin</a>
+    <?php endif; ?>
+    <span>Impact</span>
+</div>
+
 <div class="page-head">
     <div class="page-head__top">
         <div>
-            <div class="breadcrumb">
-                <a href="<?= baseUrl('dashboard.php') ?>">Dashboard</a> / <span>Impact</span>
-            </div>
             <h1><?= $role === 'admin' ? 'Platform Impact Dashboard' : 'My Impact Summary' ?></h1>
             <p class="text-muted">
-                <?= $role === 'admin' ? 'Aggregate environmental and social metrics across all ResQFood activity.' : 'Your contribution to reducing food waste and feeding communities.' ?>
-                <strong style="color:var(--olive)">All figures are approximate estimates.</strong>
+                <?= $role === 'admin' ? 'Environmental and social metrics across all ResQFood activity.' : 'Your contribution to reducing food waste and feeding communities.' ?>
             </p>
         </div>
     </div>
 </div>
 
-<!-- ── Hero Impact Numbers ── -->
-<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem">
+<!-- ── Approximation disclaimer ──────────────────────────── -->
+<div class="impact-disclaimer">
+    <svg viewBox="0 0 18 18" width="16" fill="none"><circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.4"/><path d="M9 8v4m0-6h.01" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+    All figures marked <strong style="color:var(--olive)">&sim;</strong> are approximate estimates based on food quantity and standard conversion factors (~350g per meal, ~2.5 kg CO₂ per kg food). They are not scientifically certified measurements.
+</div>
 
-    <div class="card" style="text-align:center;padding:2rem 1rem;background:linear-gradient(135deg,rgba(74,103,65,.08),rgba(74,103,65,.02))">
-        <div style="font-size:3rem;font-weight:900;color:var(--olive);line-height:1"><?= number_format($stats['total_pickups']) ?></div>
-        <div style="font-size:.78rem;font-weight:800;text-transform:uppercase;letter-spacing:.09em;color:var(--text-muted);margin-top:.5rem">Successful Pickups</div>
-        <div style="font-size:.72rem;color:var(--text-muted);margin-top:.35rem">Listings collected</div>
+<!-- ── Hero Impact Numbers ──────────────────────────────────── -->
+<div class="impact-hero-grid">
+
+    <div class="impact-metric">
+        <div class="impact-metric__icon">
+            <svg viewBox="0 0 24 24" width="22" fill="none"><path d="M9 12l2 2 4-4m-6 8a9 9 0 110-18 9 9 0 010 18z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="impact-metric__number"><?= number_format($stats['total_pickups']) ?></div>
+        <div class="impact-metric__label">Successful Pickups</div>
+        <div class="impact-metric__approx">Listings collected</div>
     </div>
 
-    <div class="card" style="text-align:center;padding:2rem 1rem;background:linear-gradient(135deg,rgba(74,103,65,.08),rgba(74,103,65,.02))">
-        <div style="font-size:3rem;font-weight:900;color:var(--olive);line-height:1"><?= number_format($stats['meals_saved'], 0) ?></div>
-        <div style="font-size:.78rem;font-weight:800;text-transform:uppercase;letter-spacing:.09em;color:var(--text-muted);margin-top:.5rem">Meals Saved ~</div>
-        <div style="font-size:.72rem;color:var(--text-muted);margin-top:.35rem">~350g per meal</div>
+    <div class="impact-metric">
+        <div class="impact-metric__icon">
+            <svg viewBox="0 0 24 24" width="22" fill="none"><path d="M12 3c-3.9 2-7 5.8-7 9.5C5 16.6 8.1 20 12 20s7-3.4 7-7.5C19 8.8 15.9 5 12 3z" stroke="currentColor" stroke-width="1.8"/><path d="M12 8v5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </div>
+        <div class="impact-metric__number"><?= number_format($stats['meals_saved'], 0) ?></div>
+        <div class="impact-metric__label">Meals Saved &sim;</div>
+        <div class="impact-metric__approx">~350g per meal</div>
     </div>
 
-    <div class="card" style="text-align:center;padding:2rem 1rem;background:linear-gradient(135deg,rgba(74,103,65,.08),rgba(74,103,65,.02))">
-        <div style="font-size:3rem;font-weight:900;color:var(--olive);line-height:1"><?= number_format($stats['kg_saved'], 1) ?><span style="font-size:1.5rem">kg</span></div>
-        <div style="font-size:.78rem;font-weight:800;text-transform:uppercase;letter-spacing:.09em;color:var(--text-muted);margin-top:.5rem">Food Diverted ~</div>
-        <div style="font-size:.72rem;color:var(--text-muted);margin-top:.35rem">From landfill</div>
+    <div class="impact-metric">
+        <div class="impact-metric__icon">
+            <svg viewBox="0 0 24 24" width="22" fill="none"><path d="M20 7H4a2 2 0 00-2 2v8a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z" stroke="currentColor" stroke-width="1.8"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </div>
+        <div class="impact-metric__number">
+            <?= number_format($stats['kg_saved'], 1) ?><span>kg</span>
+        </div>
+        <div class="impact-metric__label">Food Diverted &sim;</div>
+        <div class="impact-metric__approx">From landfill</div>
     </div>
 
-    <div class="card" style="text-align:center;padding:2rem 1rem;background:linear-gradient(135deg,rgba(74,103,65,.08),rgba(74,103,65,.02))">
-        <div style="font-size:3rem;font-weight:900;color:var(--olive);line-height:1"><?= number_format($stats['co2_reduced'], 1) ?><span style="font-size:1.5rem">kg</span></div>
-        <div style="font-size:.78rem;font-weight:800;text-transform:uppercase;letter-spacing:.09em;color:var(--text-muted);margin-top:.5rem">CO₂ Avoided ~</div>
-        <div style="font-size:.72rem;color:var(--text-muted);margin-top:.35rem">~2.5 kg CO₂/kg food</div>
+    <div class="impact-metric">
+        <div class="impact-metric__icon">
+            <svg viewBox="0 0 24 24" width="22" fill="none"><path d="M12 21a9 9 0 100-18 9 9 0 000 18z" stroke="currentColor" stroke-width="1.8"/><path d="M12 6v6l4 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </div>
+        <div class="impact-metric__number">
+            <?= number_format($stats['co2_reduced'], 1) ?><span>kg</span>
+        </div>
+        <div class="impact-metric__label">CO&#8322; Avoided &sim;</div>
+        <div class="impact-metric__approx">~2.5 kg CO&#8322;/kg food</div>
     </div>
 
 </div>
 
-<!-- ── Listing Status Breakdown + Category Breakdown ── -->
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.75rem">
+<!-- ── Breakdown Charts ──────────────────────────────────────── -->
+<div class="admin-2col">
 
-    <!-- Listing status -->
+    <!-- Listings by status -->
     <div class="card">
-        <div class="card-header"><h3>Listings by Status</h3></div>
+        <div class="card-header">
+            <h3>Listings by Status</h3>
+            <span style="font-size:.78rem;color:var(--text-muted)"><?= number_format($stats['total_listings']) ?> total</span>
+        </div>
         <div class="card-body">
             <?php
-            $statusColors = [
-                'available' => 'var(--olive)', 'reserved' => '#b8860b',
-                'collected' => 'var(--olive)', 'expired' => 'var(--terra)',
-                'cancelled' => '#999',
+            $statusBarMap = [
+                'available' => ['Available', 'olive'],
+                'reserved'  => ['Reserved',  'amber'],
+                'collected' => ['Collected', 'collected'],
+                'expired'   => ['Expired',   'terra'],
+                'cancelled' => ['Cancelled', 'muted'],
             ];
             $total_ls = array_sum($listing_stats) ?: 1;
-            foreach (['available', 'reserved', 'collected', 'expired', 'cancelled'] as $s):
-                $cnt  = $listing_stats[$s] ?? 0;
-                $pct  = round($cnt / $total_ls * 100, 1);
-                $col  = $statusColors[$s] ?? '#999';
+            foreach ($statusBarMap as $s => [$slabel, $fill]):
+                $cnt = $listing_stats[$s] ?? 0;
+                $pct = round($cnt / $total_ls * 100, 1);
             ?>
-            <div style="margin-bottom:.85rem">
-                <div style="display:flex;justify-content:space-between;font-size:.83rem;margin-bottom:.3rem">
-                    <span style="font-weight:600;text-transform:capitalize"><?= statusLabel($s) ?></span>
-                    <span style="color:var(--text-muted)"><?= number_format($cnt) ?> (<?= $pct ?>%)</span>
+            <div class="progress-item">
+                <div class="progress-item__header">
+                    <span class="progress-item__name"><?= $slabel ?></span>
+                    <span class="progress-item__count"><?= number_format($cnt) ?> (<?= $pct ?>%)</span>
                 </div>
-                <div style="height:8px;background:var(--sand);border-radius:var(--r-pill);overflow:hidden">
-                    <div style="height:100%;width:<?= $pct ?>%;background:<?= $col ?>;border-radius:var(--r-pill);transition:width 600ms ease"></div>
+                <div class="progress-track">
+                    <div class="progress-fill progress-fill--<?= $fill ?>"
+                         style="width:<?= $pct ?>%"></div>
                 </div>
             </div>
             <?php endforeach; ?>
-            <div style="font-size:.75rem;color:var(--text-muted);margin-top:.75rem">
-                Total listings: <?= number_format($stats['total_listings']) ?>
-            </div>
         </div>
     </div>
 
-    <!-- Category breakdown -->
+    <!-- Top collected categories -->
     <div class="card">
         <div class="card-header"><h3>Top Collected Categories</h3></div>
         <div class="card-body">
             <?php if (empty($catRows)): ?>
-                <p class="text-muted" style="font-size:.85rem">No collected listings yet.</p>
+                <div class="empty-state" style="padding:1.5rem 0">
+                    <p style="color:var(--text-muted);font-size:.85rem;margin:0">No collected listings recorded yet.</p>
+                </div>
             <?php else: ?>
-                <?php
-                $maxCat = max(array_column($catRows, 'cnt')) ?: 1;
-                foreach ($catRows as $cat): ?>
-                <div style="margin-bottom:.85rem">
-                    <div style="display:flex;justify-content:space-between;font-size:.83rem;margin-bottom:.3rem">
-                        <span style="font-weight:600"><?= e($cat['category'] ?? 'Other') ?></span>
-                        <span style="color:var(--text-muted)"><?= number_format($cat['cnt']) ?> pickups</span>
+                <?php $maxCat = max(array_column($catRows, 'cnt')) ?: 1; ?>
+                <?php foreach ($catRows as $cat): ?>
+                <div class="progress-item">
+                    <div class="progress-item__header">
+                        <span class="progress-item__name"><?= e($cat['category'] ?? 'Other') ?></span>
+                        <span class="progress-item__count"><?= number_format($cat['cnt']) ?> pickups</span>
                     </div>
-                    <div style="height:8px;background:var(--sand);border-radius:var(--r-pill);overflow:hidden">
-                        <div style="height:100%;width:<?= round($cat['cnt']/$maxCat*100, 1) ?>%;background:var(--olive);border-radius:var(--r-pill)"></div>
+                    <div class="progress-track">
+                        <div class="progress-fill progress-fill--olive"
+                             style="width:<?= round($cat['cnt']/$maxCat*100, 1) ?>%"></div>
                     </div>
                 </div>
                 <?php endforeach; ?>
             <?php endif; ?>
         </div>
     </div>
-
 </div>
 
-<!-- ── Top Businesses (admin only) ── -->
+<!-- ── Top Contributing Businesses (admin only) ─────────────── -->
 <?php if ($role === 'admin' && !empty($topBiz)): ?>
 <div class="card" style="margin-bottom:1.75rem">
-    <div class="card-header"><h3>Top Contributing Businesses</h3></div>
-    <div class="table-wrapper">
-        <table class="table">
-            <thead>
-                <tr><th>Business</th><th>City</th><th>Pickups</th><th>Meals~</th><th>kg Diverted~</th></tr>
-            </thead>
-            <tbody>
-                <?php foreach ($topBiz as $biz): ?>
-                <tr>
-                    <td style="font-weight:700"><?= e($biz['business_name']) ?></td>
-                    <td style="font-size:.83rem;color:var(--text-muted)"><?= e($biz['city'] ?? '—') ?></td>
-                    <td style="font-weight:700;color:var(--olive)"><?= number_format($biz['pickups']) ?></td>
-                    <td><?= number_format($biz['meals'], 0) ?> ~</td>
-                    <td><?= number_format($biz['kg'], 1) ?> kg ~</td>
-                </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
+    <div class="card-header">
+        <h3>Top Contributing Businesses</h3>
+        <span class="status-badge status-badge--green"><?= count($topBiz) ?> businesses</span>
+    </div>
+    <div class="card-body" style="padding:1rem 1.4rem">
+        <?php foreach ($topBiz as $i => $biz): ?>
+        <div class="biz-row">
+            <div class="biz-row__rank biz-row__rank--<?= $i + 1 ?>"><?= $i + 1 ?></div>
+            <div>
+                <div class="biz-row__name"><?= e($biz['business_name']) ?></div>
+                <?php if ($biz['city']): ?>
+                <div class="biz-row__city"><?= e($biz['city']) ?></div>
+                <?php endif; ?>
+            </div>
+            <div class="biz-row__stats">
+                <strong><?= number_format($biz['pickups']) ?></strong> pickups<br>
+                <span style="color:var(--text-muted);font-size:.75rem">
+                    <?= number_format($biz['meals'], 0) ?> meals &sim; &middot;
+                    <?= number_format($biz['kg'], 1) ?> kg &sim;
+                </span>
+            </div>
+        </div>
+        <?php endforeach; ?>
     </div>
 </div>
 <?php endif; ?>
 
-<!-- ── Recent Impact Records ── -->
+<!-- ── Recent Impact Records ────────────────────────────────── -->
 <?php if (!empty($recentImpact)): ?>
 <div class="card">
-    <div class="card-header"><h3>Recent Impact Records</h3></div>
+    <div class="card-header">
+        <h3>Recent Impact Records</h3>
+    </div>
     <div class="table-wrapper">
         <table class="table">
             <thead>
@@ -246,24 +283,24 @@ require_once __DIR__ . '/../../partials/header.php';
                     <th>Listing</th>
                     <?php if ($role === 'admin'): ?><th>Business</th><?php endif; ?>
                     <th>Category</th>
-                    <th>Meals ~</th>
-                    <th>kg ~</th>
-                    <th>CO₂ ~</th>
+                    <th>Meals &sim;</th>
+                    <th>kg &sim;</th>
+                    <th>CO&#8322; &sim;</th>
                     <th>Recorded</th>
                 </tr>
             </thead>
             <tbody>
                 <?php foreach ($recentImpact as $ir): ?>
                 <tr>
-                    <td style="font-weight:600;font-size:.87rem"><?= e(truncate($ir['title'], 35)) ?></td>
+                    <td style="font-weight:600;font-size:.87rem"><?= e(truncate($ir['title'], 36)) ?></td>
                     <?php if ($role === 'admin'): ?>
-                        <td style="font-size:.82rem;color:var(--text-muted)"><?= e($ir['business_name'] ?? '—') ?></td>
+                    <td style="font-size:.82rem;color:var(--text-muted)"><?= e($ir['business_name'] ?? '—') ?></td>
                     <?php endif; ?>
                     <td style="font-size:.82rem"><?= e($ir['category'] ?? '—') ?></td>
                     <td style="color:var(--olive);font-weight:700"><?= number_format($ir['estimated_meals_saved'], 1) ?></td>
-                    <td><?= number_format($ir['estimated_kg_saved'], 2) ?> kg</td>
-                    <td><?= number_format($ir['estimated_co2_reduced'], 2) ?> kg</td>
-                    <td style="font-size:.78rem;color:var(--text-muted)"><?= formatDate($ir['recorded_at'], 'd M Y') ?></td>
+                    <td style="font-size:.83rem"><?= number_format($ir['estimated_kg_saved'], 2) ?> kg</td>
+                    <td style="font-size:.83rem"><?= number_format($ir['estimated_co2_reduced'], 2) ?> kg</td>
+                    <td style="font-size:.77rem;color:var(--text-muted);white-space:nowrap"><?= formatDate($ir['recorded_at'], 'd M Y') ?></td>
                 </tr>
                 <?php endforeach; ?>
             </tbody>
@@ -271,9 +308,5 @@ require_once __DIR__ . '/../../partials/header.php';
     </div>
 </div>
 <?php endif; ?>
-
-<p style="margin-top:1.25rem;font-size:.78rem;color:var(--text-muted);text-align:center">
-    All figures marked ~ are estimates based on food type, quantity, and standard conversion factors. They are not scientifically certified.
-</p>
 
 <?php require_once __DIR__ . '/../../partials/footer.php'; ?>

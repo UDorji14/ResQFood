@@ -53,6 +53,8 @@ $pdo = db();
 try {
     $pdo->beginTransaction();
 
+    $cancelledQty = (float) ($reservation['reserved_quantity'] ?? 1);
+
     // Update reservation status
     $pdo->prepare('
         UPDATE reservations
@@ -63,18 +65,36 @@ try {
     // Log the status change
     logReservationStatus($reservationId, 'reserved', 'cancelled', $uid, 'Cancelled by reserver');
 
-    // Restore listing to available if it was reserved because of this reservation
-    $pdo->prepare('
-        UPDATE food_listings
-        SET    status = "available", updated_at = NOW()
-        WHERE  id = ? AND status = "reserved"
-    ')->execute([$reservation['listing_id']]);
+    // Restore quantity to the listing (if still within a valid state)
+    $listingStmt = $pdo->prepare('
+        SELECT status, available_quantity, quantity, unit
+        FROM   food_listings
+        WHERE  id = ?
+        FOR    UPDATE
+    ');
+    $listingStmt->execute([$reservation['listing_id']]);
+    $listingRow = $listingStmt->fetch();
+
+    if ($listingRow && !in_array($listingRow['status'], ['expired', 'cancelled', 'collected'])) {
+        $restoredAvail = (float) $listingRow['available_quantity'] + $cancelledQty;
+        // Cap at original quantity to avoid exceeding total
+        $restoredAvail = min($restoredAvail, (float) $listingRow['quantity']);
+        $newListingStatus = $restoredAvail > 0 ? 'available' : $listingRow['status'];
+
+        $pdo->prepare('
+            UPDATE food_listings
+            SET    available_quantity = ?, status = ?, updated_at = NOW()
+            WHERE  id = ?
+        ')->execute([$restoredAvail, $newListingStatus, $reservation['listing_id']]);
+    }
 
     // Notify the business owner
     createNotification(
         (int) $reservation['business_user_id'],
         'Reservation Cancelled',
-        currentUserName() . ' cancelled their reservation for "' . truncate($reservation['title'], 50) . '". The listing is available again.',
+        currentUserName() . ' cancelled their reservation of '
+            . formatQty($cancelledQty) . ' ' . ($listingRow['unit'] ?? '')
+            . ' from "' . truncate($reservation['title'], 45) . '". Quantity restored.',
         baseUrl('modules/listings/view.php?id=' . $reservation['listing_id'])
     );
 

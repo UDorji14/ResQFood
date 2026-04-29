@@ -116,7 +116,7 @@ function countBrowseListings(array $filters = []): int
 /** @internal Build WHERE + params for browse queries */
 function buildBrowseWhere(array $f): array
 {
-    $where  = ['fl.status = "available"', 'fl.pickup_end > NOW()'];
+    $where  = ['fl.status = "available"', 'fl.available_quantity > 0', 'fl.pickup_end > NOW()'];
     $params = [];
 
     if (!empty($f['keyword'])) {
@@ -149,7 +149,7 @@ function getListingCategories(): array
 // ── Expiry ────────────────────────────────────────────────────────────────
 
 /**
- * Mark all overdue "available" listings as expired.
+ * Mark all overdue "available" and "reserved" listings as expired.
  * Call once at the top of browse/manage pages.
  */
 function expireOldListings(): void
@@ -157,7 +157,7 @@ function expireOldListings(): void
     db()->prepare('
         UPDATE food_listings
         SET    status = "expired", updated_at = NOW()
-        WHERE  status = "available"
+        WHERE  status IN ("available", "reserved")
           AND  pickup_end < NOW()
     ')->execute([]);
 }
@@ -167,8 +167,10 @@ function expireOldListings(): void
 /**
  * Check whether a user can reserve a given listing.
  * Returns '' on success, or a human-readable error string.
+ *
+ * @param float $requestedQty  The quantity being requested (0 = skip qty check)
  */
-function canReserve(int $userId, string $role, array $listing): string
+function canReserve(int $userId, string $role, array $listing, float $requestedQty = 0): string
 {
     if (!in_array($role, ['general_user', 'charity'], true)) {
         return 'Only general users and charities may reserve listings.';
@@ -176,25 +178,42 @@ function canReserve(int $userId, string $role, array $listing): string
     if ($listing['status'] !== 'available') {
         return 'This listing is no longer available.';
     }
+    $availQty = (float) ($listing['available_quantity'] ?? $listing['quantity']);
+    if ($availQty <= 0) {
+        return 'This listing is fully reserved — no quantity remaining.';
+    }
     if (strtotime($listing['pickup_end']) < time()) {
         return 'The pickup window for this listing has passed.';
     }
     if ($userId === (int) $listing['business_user_id']) {
         return 'You cannot reserve your own listing.';
     }
+    if ($requestedQty > 0 && $requestedQty > $availQty) {
+        return 'You requested more than the available quantity (' . formatQty($availQty) . ' ' . $listing['unit'] . ' remaining).';
+    }
 
     // Duplicate check
     $stmt = db()->prepare('
         SELECT id FROM reservations
         WHERE  listing_id = ? AND reserved_by = ?
+          AND  reservation_status = "reserved"
         LIMIT  1
     ');
     $stmt->execute([$listing['id'], $userId]);
     if ($stmt->fetch()) {
-        return 'You have already reserved this listing.';
+        return 'You have already reserved part of this listing.';
     }
 
     return '';
+}
+
+/**
+ * Format a decimal quantity for display — strips trailing zeros.
+ * e.g. 5.00 → "5", 2.50 → "2.5", 2.57 → "2.57"
+ */
+function formatQty(float $qty): string
+{
+    return rtrim(rtrim(number_format($qty, 2, '.', ''), '0'), '.');
 }
 
 // ── Image Upload ──────────────────────────────────────────────────────────

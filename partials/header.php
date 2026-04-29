@@ -54,17 +54,20 @@ function _navActive(string $segment): string {
                 <a href="<?= baseUrl('modules/listings/index.php') ?>" class="<?= _navActive('/listings/index') ?>" role="listitem">My Listings</a>
                 <a href="<?= baseUrl('modules/listings/create.php') ?>" class="<?= _navActive('/listings/create') ?>">+ Post Food</a>
                 <a href="<?= baseUrl('modules/reservations/index.php') ?>" class="<?= _navActive('/reservations/index') ?>">Reservations</a>
+                <a href="<?= baseUrl('modules/reports/index.php') ?>" class="<?= _navActive('/reports/index') ?>">Reports</a>
                 <a href="<?= baseUrl('modules/dashboard/impact.php') ?>" class="<?= _navActive('/impact') ?>">My Impact</a>
                 <a href="<?= baseUrl('modules/profile/business_profile.php') ?>" class="<?= _navActive('business_profile') ?>">Profile</a>
 
             <?php elseif ($_role === 'general_user'): ?>
                 <a href="<?= baseUrl('modules/listings/browse.php') ?>" class="<?= _navActive('/listings/browse') ?>">Browse Food</a>
                 <a href="<?= baseUrl('modules/reservations/my.php') ?>" class="<?= _navActive('/reservations/my') ?>">My Reservations</a>
+                <a href="<?= baseUrl('modules/reports/index.php') ?>" class="<?= _navActive('/reports/index') ?>">Reports</a>
                 <a href="<?= baseUrl('modules/profile/index.php') ?>" class="<?= _navActive('/profile/index') ?>">Profile</a>
 
             <?php elseif ($_role === 'charity'): ?>
                 <a href="<?= baseUrl('modules/listings/browse.php') ?>" class="<?= _navActive('/listings/browse') ?>">Browse Food</a>
                 <a href="<?= baseUrl('modules/reservations/my.php') ?>" class="<?= _navActive('/reservations/my') ?>">My Collections</a>
+                <a href="<?= baseUrl('modules/reports/index.php') ?>" class="<?= _navActive('/reports/index') ?>">Reports</a>
                 <a href="<?= baseUrl('modules/profile/charity_profile.php') ?>" class="<?= _navActive('charity_profile') ?>">Profile</a>
 
             <?php elseif ($_role === 'admin'): ?>
@@ -134,17 +137,20 @@ function _navActive(string $segment): string {
             <a href="<?= baseUrl('modules/listings/index.php') ?>">My Listings</a>
             <a href="<?= baseUrl('modules/listings/create.php') ?>">+ Post New Listing</a>
             <a href="<?= baseUrl('modules/reservations/index.php') ?>">Incoming Reservations</a>
+            <a href="<?= baseUrl('modules/reports/index.php') ?>">Reports</a>
             <a href="<?= baseUrl('modules/dashboard/impact.php') ?>">My Impact</a>
             <a href="<?= baseUrl('modules/profile/business_profile.php') ?>">Business Profile</a>
 
         <?php elseif ($_role === 'general_user'): ?>
             <a href="<?= baseUrl('modules/listings/browse.php') ?>">Browse Food</a>
             <a href="<?= baseUrl('modules/reservations/my.php') ?>">My Reservations</a>
+            <a href="<?= baseUrl('modules/reports/index.php') ?>">Reports</a>
             <a href="<?= baseUrl('modules/profile/index.php') ?>">My Profile</a>
 
         <?php elseif ($_role === 'charity'): ?>
             <a href="<?= baseUrl('modules/listings/browse.php') ?>">Browse Food</a>
             <a href="<?= baseUrl('modules/reservations/my.php') ?>">My Collections</a>
+            <a href="<?= baseUrl('modules/reports/index.php') ?>">Reports</a>
             <a href="<?= baseUrl('modules/profile/charity_profile.php') ?>">Charity Profile</a>
 
         <?php elseif ($_role === 'admin'): ?>

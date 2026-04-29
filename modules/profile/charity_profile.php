@@ -207,7 +207,7 @@ require_once __DIR__ . '/../../partials/header.php';
 </div>
 <?php endif; ?>
 
-<div class="profile-layout">
+<div class="profile-layout" <?= !empty($pwErrors) ? 'data-default-tab="password"' : '' ?>>
 
     <!-- ── Sidebar ── -->
     <aside class="profile-sidebar">
@@ -467,28 +467,5 @@ require_once __DIR__ . '/../../partials/header.php';
     </div><!-- /.profile-main -->
 </div><!-- /.profile-layout -->
 
-<script>
-(function () {
-    var tabs     = document.querySelectorAll('#profile-tabs .profile-tab');
-    var sections = document.querySelectorAll('.profile-section');
-
-    <?php if (!empty($pwErrors)): ?>
-    switchTab('password');
-    <?php endif; ?>
-
-    tabs.forEach(function (btn) {
-        btn.addEventListener('click', function () { switchTab(btn.dataset.tab); });
-    });
-
-    function switchTab(id) {
-        tabs.forEach(function (b)    { b.classList.remove('active'); });
-        sections.forEach(function (s) { s.classList.remove('active'); });
-        var b = document.querySelector('[data-tab="' + id + '"]');
-        var s = document.getElementById('tab-' + id);
-        if (b) b.classList.add('active');
-        if (s) s.classList.add('active');
-    }
-}());
-</script>
 
 <?php require_once __DIR__ . '/../../partials/footer.php'; ?>

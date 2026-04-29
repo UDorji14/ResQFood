@@ -9,6 +9,7 @@ require_once __DIR__ . '/../../config/db.php';
 require_once __DIR__ . '/../../includes/functions.php';
 require_once __DIR__ . '/../../includes/auth.php';
 require_once __DIR__ . '/../../includes/flash.php';
+require_once __DIR__ . '/../../includes/csrf.php';
 require_once __DIR__ . '/../../includes/listings.php';
 
 requireRole(['general_user', 'charity', 'admin']);
@@ -190,7 +191,7 @@ require_once __DIR__ . '/../../partials/header.php';
             <div class="listing-card__meta">
                 <span>
                     <svg viewBox="0 0 14 14" width="11" fill="none"><rect x="2" y="2" width="10" height="10" rx="2" stroke="currentColor" stroke-width="1.2"/><path d="M5 7h4M7 5v4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
-                    <?= e($l['quantity'] . ' ' . $l['unit']) ?>
+                    <?= e(formatQty((float)$l['available_quantity']) . ' ' . $l['unit']) ?> left
                 </span>
                 <?php if ($l['business_city']): ?>
                 <span>

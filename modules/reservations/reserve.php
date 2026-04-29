@@ -1,12 +1,10 @@
 <?php
 /**
- * ResQFood — Reserve a Listing (POST handler)
- * ───────────────────────────────────────────────
- * Creates a reservation atomically using a transaction + row lock
- * to prevent double-reservations under concurrent requests.
- *
- * After success, redirects back to the listing view page so the
- * user sees their pickup code immediately (PRG pattern).
+ * ResQFood — Reserve a Listing (POST handler) — Partial Quantity Support
+ * ────────────────────────────────────────────────────────────────────────
+ * A user specifies how much of the listing they want to reserve.
+ * The listing stays available while available_quantity > 0.
+ * Uses a row-level FOR UPDATE lock to prevent race conditions.
  */
 require_once __DIR__ . '/../../includes/session.php';
 require_once __DIR__ . '/../../config/db.php';
@@ -35,14 +33,26 @@ if ($listingId <= 0) {
     redirect(baseUrl('modules/listings/browse.php'));
 }
 
+// Validate requested quantity
+$requestedQtyRaw = trim($_POST['reserved_quantity'] ?? '');
+if ($requestedQtyRaw === '' || !is_numeric($requestedQtyRaw)) {
+    setFlash('error', 'Please enter a valid quantity to reserve.');
+    redirect($backUrl);
+}
+$requestedQty = (float) $requestedQtyRaw;
+if ($requestedQty <= 0) {
+    setFlash('error', 'Reserved quantity must be greater than zero.');
+    redirect($backUrl);
+}
+
 $pdo = db();
 
 try {
     $pdo->beginTransaction();
 
-    // ── Lock the listing row so concurrent requests queue here ───────────
+    // ── Lock the listing row ──────────────────────────────────────────────
     $stmt = $pdo->prepare('
-        SELECT id, title, status, pickup_end, business_user_id
+        SELECT id, title, status, available_quantity, quantity, unit, pickup_end, business_user_id
         FROM   food_listings
         WHERE  id = ?
         FOR    UPDATE
@@ -56,45 +66,62 @@ try {
         redirect(baseUrl('modules/listings/browse.php'));
     }
 
-    // ── Business rules ─────────────────────────────────────────────────
-    $err = canReserve($uid, $role, $listing);
+    // ── Business rules (including quantity check) ─────────────────────────
+    $err = canReserve($uid, $role, $listing, $requestedQty);
     if ($err !== '') {
         $pdo->rollBack();
         setFlash('error', $err);
         redirect($backUrl);
     }
 
-    // ── Create reservation ─────────────────────────────────────────────
-    $pickupCode = strtoupper(bin2hex(random_bytes(3))); // 6-char hex code
+    $availQty = (float) $listing['available_quantity'];
+
+    // Clamp to available (extra safety after lock)
+    if ($requestedQty > $availQty) {
+        $pdo->rollBack();
+        setFlash('error', 'Only ' . formatQty($availQty) . ' ' . $listing['unit'] . ' is available. Please reduce your request.');
+        redirect($backUrl);
+    }
+
+    // ── Create reservation ────────────────────────────────────────────────
+    $pickupCode = strtoupper(bin2hex(random_bytes(3)));
 
     $pdo->prepare('
-        INSERT INTO reservations (listing_id, reserved_by, reservation_status, pickup_code, reserved_at)
-        VALUES (?, ?, "reserved", ?, NOW())
-    ')->execute([$listingId, $uid, $pickupCode]);
+        INSERT INTO reservations
+               (listing_id, reserved_by, reservation_status, pickup_code, reserved_quantity, reserved_at)
+        VALUES (?, ?, "reserved", ?, ?, NOW())
+    ')->execute([$listingId, $uid, $pickupCode, $requestedQty]);
 
     $reservationId = (int) $pdo->lastInsertId();
 
-    // ── Mark listing as reserved ───────────────────────────────────────
+    // ── Deduct from available_quantity ────────────────────────────────────
+    $newAvailable = $availQty - $requestedQty;
+    $newStatus    = $newAvailable <= 0 ? 'reserved' : 'available';
+
     $pdo->prepare('
-        UPDATE food_listings SET status = "reserved", updated_at = NOW() WHERE id = ?
-    ')->execute([$listingId]);
+        UPDATE food_listings
+        SET    available_quantity = ?, status = ?, updated_at = NOW()
+        WHERE  id = ?
+    ')->execute([$newAvailable, $newStatus, $listingId]);
 
-    // ── Log initial status ─────────────────────────────────────────────
-    logReservationStatus($reservationId, null, 'reserved', $uid, 'Initial reservation');
+    // ── Log initial status ────────────────────────────────────────────────
+    logReservationStatus($reservationId, null, 'reserved', $uid, 'Initial reservation — ' . formatQty($requestedQty) . ' ' . $listing['unit']);
 
-    // ── Notify the business owner ──────────────────────────────────────
+    // ── Notify the business owner ─────────────────────────────────────────
     $businessUserId = (int) $listing['business_user_id'];
     createNotification(
         $businessUserId,
         'New Reservation',
-        currentUserName() . ' has reserved your listing "' . truncate($listing['title'], 50) . '".',
+        currentUserName() . ' reserved ' . formatQty($requestedQty) . ' ' . $listing['unit']
+            . ' from "' . truncate($listing['title'], 45) . '".'
+            . ($newAvailable > 0 ? ' ' . formatQty($newAvailable) . ' ' . $listing['unit'] . ' still available.' : ' Listing fully reserved.'),
         baseUrl('modules/listings/view.php?id=' . $listingId)
     );
 
-    auditLog('reservation_create', 'res_id=' . $reservationId . ' listing_id=' . $listingId, $uid);
+    auditLog('reservation_create', 'res_id=' . $reservationId . ' listing_id=' . $listingId . ' qty=' . $requestedQty, $uid);
     $pdo->commit();
 
-    setFlash('success', 'Reservation confirmed! Your pickup code is: <strong>' . e($pickupCode) . '</strong>. Show it at the business when you collect.');
+    setFlash('success', 'Reserved <strong>' . e(formatQty($requestedQty) . ' ' . $listing['unit']) . '</strong>! Your pickup code is: <strong>' . e($pickupCode) . '</strong>. Show it at the business when you collect.');
     redirect($backUrl);
 
 } catch (Throwable $e) {

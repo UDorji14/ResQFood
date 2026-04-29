@@ -156,7 +156,10 @@ if ($statusFilter !== 'all') $toRender = $reservations;
                     <?php if ($r['business_city']): ?>&nbsp;&middot;&nbsp;<?= e($r['business_city']) ?><?php endif; ?>
                 </div>
                 <div class="res-item__facts">
-                    <span><strong>Qty:</strong> <?= e($r['quantity'] . ' ' . $r['unit']) ?></span>
+                    <span>
+                        <strong>Your qty:</strong>
+                        <?= e(formatQty((float)($r['reserved_quantity'] ?? 1)) . ' ' . $r['unit']) ?>
+                    </span>
                     <span><strong>Pickup:</strong> <?= formatDate($r['pickup_start'], 'd M, H:i') ?> &ndash; <?= formatDate($r['pickup_end'], 'H:i') ?></span>
                     <span><strong>Reserved:</strong> <?= formatDate($r['reserved_at'], 'd M Y') ?></span>
                     <?php if ($r['collected_at']): ?>
@@ -236,7 +239,10 @@ if ($statusFilter !== 'all') $toRender = $reservations;
                     <?php if ($r['business_city']): ?>&nbsp;&middot;&nbsp;<?= e($r['business_city']) ?><?php endif; ?>
                 </div>
                 <div class="res-item__facts">
-                    <span><strong>Qty:</strong> <?= e($r['quantity'] . ' ' . $r['unit']) ?></span>
+                    <span>
+                        <strong>Your qty:</strong>
+                        <?= e(formatQty((float)($r['reserved_quantity'] ?? 1)) . ' ' . $r['unit']) ?>
+                    </span>
                     <span><strong>Reserved:</strong> <?= formatDate($r['reserved_at'], 'd M Y') ?></span>
                     <?php if ($r['collected_at']): ?>
                     <span><strong>Collected:</strong> <?= formatDate($r['collected_at'], 'd M Y') ?></span>

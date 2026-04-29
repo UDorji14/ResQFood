@@ -103,29 +103,32 @@ require_once __DIR__ . '/../../partials/header.php';
 <div class="card">
     <div class="table-wrapper">
         <table class="table">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Listing</th>
-                    <th>Reserved By</th>
-                    <th>Role</th>
-                    <th>Pickup Code</th>
-                    <th>Status</th>
-                    <th>Reserved At</th>
-                    <th style="text-align:right">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($reservations as $r): ?>
-                <tr>
-                    <td style="color:var(--text-muted);font-size:.82rem">#<?= $r['id'] ?></td>
-                    <td>
-                        <a href="<?= baseUrl('modules/listings/view.php?id=' . $r['listing_id']) ?>"
-                           style="font-weight:700;color:var(--olive)">
-                            <?= e(truncate($r['title'], 35)) ?>
-                        </a>
-                        <div style="font-size:.75rem;color:var(--text-muted)"><?= e($r['quantity'] . ' ' . $r['unit']) ?></div>
-                    </td>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Listing</th>
+                            <th>Reserved By</th>
+                            <th>Role</th>
+                            <th>Qty Reserved</th>
+                            <th>Pickup Code</th>
+                            <th>Status</th>
+                            <th>Reserved At</th>
+                            <th style="text-align:right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($reservations as $r): ?>
+                        <tr>
+                            <td style="color:var(--text-muted);font-size:.82rem">#<?= $r['id'] ?></td>
+                            <td>
+                                <a href="<?= baseUrl('modules/listings/view.php?id=' . $r['listing_id']) ?>"
+                                   style="font-weight:700;color:var(--olive)">
+                                    <?= e(truncate($r['title'], 35)) ?>
+                                </a>
+                                <div style="font-size:.75rem;color:var(--text-muted)">
+                                    Total: <?= e(formatQty((float)$r['quantity']) . ' ' . $r['unit']) ?>
+                                </div>
+                            </td>
                     <td>
                         <div style="font-weight:600"><?= e($r['reserved_by_name']) ?></div>
                         <div style="font-size:.75rem;color:var(--text-muted)"><?= e($r['reserved_by_email']) ?></div>
@@ -135,15 +138,18 @@ require_once __DIR__ . '/../../partials/header.php';
                             <?= roleLabel($r['reserver_role']) ?>
                         </span>
                     </td>
-                    <td><?= pickupCodeBadge($r['pickup_code']) ?></td>
-                    <td>
-                        <span class="status-badge status-badge--<?= statusClass($r['reservation_status']) ?>">
-                            <?= statusLabel($r['reservation_status']) ?>
-                        </span>
-                    </td>
-                    <td style="font-size:.82rem;color:var(--text-muted)">
-                        <?= formatDate($r['reserved_at'], 'd M Y, H:i') ?>
-                    </td>
+                            <td style="font-weight:700;color:var(--olive-deep);white-space:nowrap">
+                                <?= e(formatQty((float)($r['reserved_quantity'] ?? 1)) . ' ' . $r['unit']) ?>
+                            </td>
+                            <td><?= pickupCodeBadge($r['pickup_code']) ?></td>
+                            <td>
+                                <span class="status-badge status-badge--<?= statusClass($r['reservation_status']) ?>">
+                                    <?= statusLabel($r['reservation_status']) ?>
+                                </span>
+                            </td>
+                            <td style="font-size:.82rem;color:var(--text-muted)">
+                                <?= formatDate($r['reserved_at'], 'd M Y, H:i') ?>
+                            </td>
                     <td style="text-align:right;white-space:nowrap">
                         <?php if ($r['reservation_status'] === 'reserved'): ?>
                         <a href="<?= baseUrl('modules/reservations/confirm_pickup.php?id=' . $r['id']) ?>"

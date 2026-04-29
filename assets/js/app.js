@@ -115,35 +115,43 @@
        3. Profile Tab System
     ══════════════════════════════════════════════════════════ */
     (function initProfileTabs() {
-        $$('[data-tab]').forEach(btn => {
-            on(btn, 'click', function () {
-                const targetId = this.dataset.tab;
-                const container = this.closest('.profile-layout, [data-tabs]') || document;
+        var layout = document.querySelector('.profile-layout');
+        if (!layout) return; // only run on profile pages
 
-                // Deactivate all tabs and sections in this container
-                $$(`.profile-tab, [data-tab]`, container).forEach(t => t.classList.remove('active'));
-                $$('.profile-section', container).forEach(s => s.classList.remove('active'));
+        function switchTo(tabId) {
+            // Deactivate every tab button and every section
+            layout.querySelectorAll('.profile-tab').forEach(function (b) {
+                b.classList.remove('active');
+            });
+            layout.querySelectorAll('.profile-section').forEach(function (s) {
+                s.classList.remove('active');
+            });
 
-                // Activate clicked tab
-                this.classList.add('active');
+            // Activate the matching button
+            var btn = layout.querySelector('[data-tab="' + tabId + '"]');
+            if (btn) btn.classList.add('active');
 
-                // Activate target section
-                const section = $(`#${targetId}`, container);
-                if (section) section.classList.add('active');
+            // Activate the matching section — try #tab-X first, then #X
+            var section = document.getElementById('tab-' + tabId)
+                       || document.getElementById(tabId);
+            if (section) section.classList.add('active');
 
-                // Update URL hash without scrolling
-                if (history.replaceState) {
-                    history.replaceState(null, '', '#' + targetId);
-                }
+            // Reflect in URL without triggering a scroll
+            if (history.replaceState) {
+                history.replaceState(null, '', '#' + tabId);
+            }
+        }
+
+        // Wire up every tab button
+        layout.querySelectorAll('[data-tab]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                switchTo(this.dataset.tab);
             });
         });
 
-        // Restore tab from URL hash on page load
-        const hash = location.hash.slice(1);
-        if (hash) {
-            const tabBtn = $(`[data-tab="${hash}"]`);
-            if (tabBtn) tabBtn.click();
-        }
+        // On page load: honour URL hash first, then data-default-tab attribute
+        var openTab = location.hash.slice(1) || layout.dataset.defaultTab || '';
+        if (openTab) switchTo(openTab);
     })();
 
 
@@ -177,7 +185,24 @@
                 });
             }, { threshold: 0.2 });
 
-            $$('.progress-bar, .impact-bar-track').forEach(bar => observer.observe(bar));
+            $$('.progress-bar, .impact-bar-track, .progress-track').forEach(bar => observer.observe(bar));
+
+            // Animate new .progress-fill elements (inline width set by PHP)
+            const fillObserver = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const fill = entry.target;
+                        const target = fill.style.width;
+                        fill.style.width = '0%';
+                        requestAnimationFrame(() => setTimeout(() => { fill.style.width = target; }, 80));
+                        fillObserver.unobserve(fill);
+                    }
+                });
+            }, { threshold: 0.1 });
+            $$('.progress-fill').forEach(f => {
+                const w = f.style.width;
+                if (w && w !== '0%') { f.style.width = '0%'; fillObserver.observe(f); }
+            });
         }
     })();
 

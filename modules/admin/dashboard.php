@@ -8,6 +8,7 @@ require_once __DIR__ . '/../../config/db.php';
 require_once __DIR__ . '/../../includes/functions.php';
 require_once __DIR__ . '/../../includes/auth.php';
 require_once __DIR__ . '/../../includes/flash.php';
+require_once __DIR__ . '/../../includes/csrf.php';
 require_once __DIR__ . '/../../includes/admin.php';
 require_once __DIR__ . '/../../includes/listings.php';
 
@@ -29,86 +30,94 @@ $pageTitle = 'Admin Dashboard';
 require_once __DIR__ . '/../../partials/header.php';
 ?>
 
-<div class="page-head">
-    <div class="page-head__top">
+<!-- ── Admin Hero ───────────────────────────────────────────── -->
+<div class="admin-hero">
+    <div class="admin-hero__inner">
         <div>
-            <h1>Admin Dashboard</h1>
-            <p class="text-muted">Platform overview and moderation centre.</p>
+            <div class="admin-hero__eyebrow">ResQFood &mdash; Control Centre</div>
+            <div class="admin-hero__title">Admin Dashboard</div>
+            <div class="admin-hero__sub">Platform overview &middot; <?= date('l, d M Y') ?></div>
         </div>
-        <div style="display:flex;gap:.65rem;flex-wrap:wrap">
-            <a href="<?= baseUrl('modules/admin/reports.php') ?>" class="btn btn-outline">
-                Reports
-                <?php if ($stats['open_reports'] > 0): ?>
-                    <span style="background:var(--terra);color:#fff;border-radius:var(--r-pill);padding:.1rem .45rem;font-size:.72rem;font-weight:800;margin-left:.3rem"><?= $stats['open_reports'] ?></span>
-                <?php endif; ?>
+        <div class="admin-hero__actions">
+            <?php if ($stats['pending_verif'] > 0): ?>
+            <a href="<?= baseUrl('modules/admin/users.php?status=pending') ?>" class="admin-hero__badge admin-hero__badge--urgent">
+                <span class="badge-dot"></span>
+                <?= $stats['pending_verif'] ?> pending verification
             </a>
-            <a href="<?= baseUrl('modules/admin/users.php') ?>" class="btn btn-primary">Manage Users</a>
+            <?php endif; ?>
+            <?php if ($stats['open_reports'] > 0): ?>
+            <a href="<?= baseUrl('modules/admin/reports.php?status=open') ?>" class="admin-hero__badge admin-hero__badge--urgent">
+                <span class="badge-dot"></span>
+                <?= $stats['open_reports'] ?> open report<?= $stats['open_reports'] !== 1 ? 's' : '' ?>
+            </a>
+            <?php endif; ?>
+            <a href="<?= baseUrl('modules/admin/users.php') ?>" class="admin-hero__badge">
+                <svg viewBox="0 0 16 16" width="13" fill="none"><circle cx="8" cy="5" r="3" stroke="currentColor" stroke-width="1.4"/><path d="M2 13c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+                Manage Users
+            </a>
+            <a href="<?= baseUrl('modules/dashboard/impact.php') ?>" class="admin-hero__badge">
+                <svg viewBox="0 0 16 16" width="13" fill="none"><path d="M2 12l3-4 3 2 3-5 3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Impact Report
+            </a>
         </div>
     </div>
 </div>
 
-<!-- ── Alerts ── -->
-<?php if ($stats['pending_verif'] > 0): ?>
-<div class="notice notice--warning" style="margin-bottom:1.25rem">
-    <svg viewBox="0 0 20 20" width="18" fill="none"><path d="M10 3L2 17h16L10 3z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M10 9v4m0 2h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-    <div class="notice__body">
-        <strong><?= $stats['pending_verif'] ?> profile<?= $stats['pending_verif'] !== 1 ? 's' : '' ?> awaiting verification.</strong>
-        Review them in <a href="<?= baseUrl('modules/admin/users.php?role=business') ?>">Business</a>
-        or <a href="<?= baseUrl('modules/admin/users.php?role=charity') ?>">Charity</a> user lists.
-    </div>
-</div>
-<?php endif; ?>
-<?php if ($stats['open_reports'] > 0): ?>
-<div class="notice notice--danger" style="margin-bottom:1.25rem">
-    <svg viewBox="0 0 20 20" width="18" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M10 6v4m0 3.5h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-    <div class="notice__body">
-        <strong><?= $stats['open_reports'] ?> open report<?= $stats['open_reports'] !== 1 ? 's' : '' ?> require attention.</strong>
-        <a href="<?= baseUrl('modules/admin/reports.php?status=open') ?>">Review now →</a>
-    </div>
-</div>
-<?php endif; ?>
-
-<!-- ── Users Grid ── -->
-<div style="margin-bottom:.5rem;font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted)">Users</div>
+<!-- ── Users Stats ──────────────────────────────────────────── -->
+<div class="admin-section-label">Users</div>
 <div class="stat-grid" style="margin-bottom:1.75rem">
     <div class="stat-card">
+        <div class="stat-card__icon-box" style="background:rgba(74,103,65,.1);color:var(--olive)">
+            <svg viewBox="0 0 20 20" width="18" fill="none"><circle cx="10" cy="7" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M3 18c0-3.9 3.1-7 7-7s7 3.1 7 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
         <div class="stat-card__value"><?= number_format($stats['users']) ?></div>
         <div class="stat-card__label">Total Users</div>
+        <div class="stat-card__sub"><a href="<?= baseUrl('modules/admin/users.php') ?>">View all →</a></div>
     </div>
     <div class="stat-card">
+        <div class="stat-card__icon-box" style="background:rgba(74,103,65,.1);color:var(--olive)">
+            <svg viewBox="0 0 20 20" width="18" fill="none"><rect x="3" y="5" width="14" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 5V4a3 3 0 016 0v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
         <div class="stat-card__value" style="color:var(--olive)"><?= number_format($byRole['business'] ?? 0) ?></div>
         <div class="stat-card__label">Businesses</div>
         <div class="stat-card__sub"><a href="<?= baseUrl('modules/admin/users.php?role=business') ?>">View →</a></div>
     </div>
     <div class="stat-card">
-        <div class="stat-card__value" style="color:var(--olive)"><?= number_format($byRole['charity'] ?? 0) ?></div>
+        <div class="stat-card__icon-box" style="background:rgba(196,145,62,.1);color:#8a5c0e">
+            <svg viewBox="0 0 20 20" width="18" fill="none"><path d="M10 4c-2.8 1.5-5 4-5 6.5C5 13.5 7.2 16 10 16s5-2.5 5-5.5c0-2.5-2.2-5-5-6.5z" stroke="currentColor" stroke-width="1.5"/></svg>
+        </div>
+        <div class="stat-card__value" style="color:#8a5c0e"><?= number_format($byRole['charity'] ?? 0) ?></div>
         <div class="stat-card__label">Charities</div>
         <div class="stat-card__sub"><a href="<?= baseUrl('modules/admin/users.php?role=charity') ?>">View →</a></div>
     </div>
     <div class="stat-card">
+        <div class="stat-card__icon-box" style="background:rgba(74,103,65,.06);color:var(--text-mid)">
+            <svg viewBox="0 0 20 20" width="18" fill="none"><circle cx="8" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M2 17c0-3.3 2.7-6 6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="15" cy="13" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M13 13h4M15 11v4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        </div>
         <div class="stat-card__value"><?= number_format($byRole['general_user'] ?? 0) ?></div>
         <div class="stat-card__label">General Users</div>
         <div class="stat-card__sub"><a href="<?= baseUrl('modules/admin/users.php?role=general_user') ?>">View →</a></div>
     </div>
 </div>
 
-<!-- ── Listings Grid ── -->
-<div style="margin-bottom:.5rem;font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted)">Listings</div>
+<!-- ── Listings Stats ───────────────────────────────────────── -->
+<div class="admin-section-label">Listings</div>
 <div class="stat-grid" style="margin-bottom:1.75rem">
     <div class="stat-card">
         <div class="stat-card__value"><?= number_format($stats['listings_total']) ?></div>
-        <div class="stat-card__label">Total Listings</div>
+        <div class="stat-card__label">Total</div>
+        <div class="stat-card__sub"><a href="<?= baseUrl('modules/admin/listings.php') ?>">View all →</a></div>
     </div>
     <div class="stat-card">
         <div class="stat-card__value" style="color:var(--olive)"><?= number_format($listings['available'] ?? 0) ?></div>
-        <div class="stat-card__label">Available Now</div>
+        <div class="stat-card__label">Available</div>
     </div>
     <div class="stat-card">
         <div class="stat-card__value" style="color:#b8860b"><?= number_format($listings['reserved'] ?? 0) ?></div>
         <div class="stat-card__label">Reserved</div>
     </div>
     <div class="stat-card">
-        <div class="stat-card__value"><?= number_format($listings['collected'] ?? 0) ?></div>
+        <div class="stat-card__value" style="color:#3d6b34"><?= number_format($listings['collected'] ?? 0) ?></div>
         <div class="stat-card__label">Collected</div>
     </div>
     <div class="stat-card">
@@ -117,84 +126,109 @@ require_once __DIR__ . '/../../partials/header.php';
     </div>
 </div>
 
-<!-- ── Reservations + Impact ── -->
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.75rem">
+<!-- ── Reservations + Impact ────────────────────────────────── -->
+<div class="admin-2col">
 
-    <!-- Reservations -->
+    <!-- Reservations breakdown -->
     <div class="card">
-        <div class="card-header"><h3>Reservations</h3></div>
+        <div class="card-header">
+            <h3>Reservations</h3>
+            <span class="status-badge status-badge--amber"><?= number_format(array_sum($res)) ?> total</span>
+        </div>
         <div class="card-body" style="padding:1rem 1.25rem">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
-                <?php foreach (['reserved' => 'Pending Pickup', 'collected' => 'Collected', 'cancelled' => 'Cancelled', 'expired' => 'Expired', 'no_show' => 'No-show'] as $key => $label): ?>
-                <div style="padding:.75rem;background:var(--bg-base);border-radius:var(--r-md);text-align:center">
-                    <div style="font-size:1.4rem;font-weight:900;color:var(--text)"><?= number_format($res[$key] ?? 0) ?></div>
-                    <div style="font-size:.72rem;font-weight:700;color:var(--text-muted)"><?= $label ?></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.7rem">
+                <?php foreach ([
+                    'reserved'  => ['Pending Pickup', 'amber'],
+                    'collected' => ['Collected',      'green'],
+                    'cancelled' => ['Cancelled',      'muted'],
+                    'expired'   => ['Expired',        'terra'],
+                    'no_show'   => ['No-show',        'muted'],
+                ] as $key => [$label, $accent]): ?>
+                <div style="padding:.75rem;background:var(--bg-base);border-radius:var(--r-md);text-align:center;border:1px solid var(--line)">
+                    <div style="font-size:1.5rem;font-weight:900;color:var(--text-dark);line-height:1"><?= number_format($res[$key] ?? 0) ?></div>
+                    <div style="font-size:.7rem;font-weight:700;color:var(--text-muted);margin-top:.3rem"><?= $label ?></div>
                 </div>
                 <?php endforeach; ?>
             </div>
         </div>
     </div>
 
-    <!-- Impact summary -->
-    <div class="card" style="background:linear-gradient(135deg,rgba(74,103,65,.06),rgba(74,103,65,.02))">
+    <!-- Impact mini summary -->
+    <div class="card" style="background:linear-gradient(135deg,rgba(74,103,65,.05),rgba(74,103,65,.01))">
         <div class="card-header">
             <h3>Estimated Impact</h3>
-            <a href="<?= baseUrl('modules/dashboard/impact.php') ?>" style="font-size:.8rem;color:var(--olive)">Full report →</a>
+            <a href="<?= baseUrl('modules/dashboard/impact.php') ?>"
+               style="font-size:.8rem;color:var(--olive);text-decoration:none;font-weight:600">Full report &rarr;</a>
         </div>
         <div class="card-body" style="padding:1rem 1.25rem">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.7rem">
+                <?php foreach ([
+                    [$impact['total_pickups'],              'Pickups',      ''],
+                    [number_format($impact['meals_saved'],0),'Meals~',      ''],
+                    [$impact['kg_saved'],                   'kg Diverted~', ' kg'],
+                    [$impact['co2_reduced'],                'CO₂ Avoided~', ' kg'],
+                ] as [$val, $label, $unit]): ?>
                 <div style="padding:.75rem;background:rgba(74,103,65,.07);border-radius:var(--r-md);text-align:center">
-                    <div style="font-size:1.4rem;font-weight:900;color:var(--olive)"><?= number_format($impact['total_pickups']) ?></div>
-                    <div style="font-size:.72rem;font-weight:700;color:var(--text-muted)">Successful Pickups</div>
+                    <div style="font-size:1.4rem;font-weight:900;color:var(--olive);line-height:1">
+                        <?= is_numeric($val) ? number_format((float)$val, 0) : $val ?><?= e($unit) ?>
+                    </div>
+                    <div style="font-size:.7rem;font-weight:700;color:var(--text-muted);margin-top:.3rem"><?= $label ?></div>
                 </div>
-                <div style="padding:.75rem;background:rgba(74,103,65,.07);border-radius:var(--r-md);text-align:center">
-                    <div style="font-size:1.4rem;font-weight:900;color:var(--olive)"><?= number_format($impact['meals_saved'], 0) ?></div>
-                    <div style="font-size:.72rem;font-weight:700;color:var(--text-muted)">Meals Saved~</div>
-                </div>
-                <div style="padding:.75rem;background:rgba(74,103,65,.07);border-radius:var(--r-md);text-align:center">
-                    <div style="font-size:1.4rem;font-weight:900;color:var(--olive)"><?= number_format($impact['kg_saved'], 1) ?> kg</div>
-                    <div style="font-size:.72rem;font-weight:700;color:var(--text-muted)">Food Diverted~</div>
-                </div>
-                <div style="padding:.75rem;background:rgba(74,103,65,.07);border-radius:var(--r-md);text-align:center">
-                    <div style="font-size:1.4rem;font-weight:900;color:var(--olive)"><?= number_format($impact['co2_reduced'], 1) ?> kg</div>
-                    <div style="font-size:.72rem;font-weight:700;color:var(--text-muted)">CO₂ Reduced~</div>
-                </div>
+                <?php endforeach; ?>
             </div>
         </div>
     </div>
 </div>
 
-<!-- ── Bottom: Recent Users + Audit Log ── -->
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem">
+<!-- ── Newest Members + Audit Log ───────────────────────────── -->
+<div class="admin-2col">
 
-    <!-- Recent users -->
     <div class="card">
         <div class="card-header">
             <h3>Newest Members</h3>
-            <a href="<?= baseUrl('modules/admin/users.php') ?>" style="font-size:.8rem;color:var(--olive)">All users →</a>
+            <a href="<?= baseUrl('modules/admin/users.php') ?>"
+               style="font-size:.8rem;color:var(--olive);text-decoration:none;font-weight:600">All users &rarr;</a>
         </div>
         <div class="table-wrapper">
             <table class="table">
-                <thead><tr><th>Name</th><th>Role</th><th>Status</th><th>Joined</th></tr></thead>
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Joined</th>
+                    </tr>
+                </thead>
                 <tbody>
                     <?php foreach ($newUsers as $u): ?>
                     <tr>
                         <td>
-                            <a href="<?= baseUrl('modules/admin/view_user.php?id=' . $u['id']) ?>"
-                               style="font-weight:600;color:var(--olive)"><?= e($u['full_name']) ?></a>
-                            <div style="font-size:.73rem;color:var(--text-muted)"><?= e($u['email']) ?></div>
+                            <div class="user-cell">
+                                <div class="user-avatar user-avatar--<?= e($u['role']) ?>">
+                                    <?= strtoupper(mb_substr($u['full_name'], 0, 1)) ?>
+                                </div>
+                                <div>
+                                    <a class="user-cell__name"
+                                       href="<?= baseUrl('modules/admin/view_user.php?id=' . $u['id']) ?>">
+                                        <?= e(truncate($u['full_name'], 22)) ?>
+                                    </a>
+                                    <span class="user-cell__email"><?= e(truncate($u['email'], 28)) ?></span>
+                                </div>
+                            </div>
                         </td>
                         <td><span class="role-badge role-badge--<?= roleBadgeClass($u['role']) ?>"><?= roleLabel($u['role']) ?></span></td>
                         <td><span class="status-badge status-badge--<?= statusClass($u['status']) ?>"><?= statusLabel($u['status']) ?></span></td>
-                        <td style="font-size:.78rem;color:var(--text-muted)"><?= formatDate($u['created_at'], 'd M Y') ?></td>
+                        <td style="font-size:.77rem;color:var(--text-muted);white-space:nowrap"><?= formatDate($u['created_at'], 'd M Y') ?></td>
                     </tr>
                     <?php endforeach; ?>
+                    <?php if (empty($newUsers)): ?>
+                    <tr><td colspan="4" style="text-align:center;padding:1.5rem;color:var(--text-muted)">No users yet.</td></tr>
+                    <?php endif; ?>
                 </tbody>
             </table>
         </div>
     </div>
 
-    <!-- Recent audit log -->
     <div class="card">
         <div class="card-header"><h3>Recent System Activity</h3></div>
         <div class="table-wrapper">
@@ -204,21 +238,25 @@ require_once __DIR__ . '/../../partials/header.php';
                     <?php foreach ($recentLogs as $log): ?>
                     <tr>
                         <td>
-                            <span style="font-size:.8rem;font-weight:700;font-family:monospace;color:var(--olive)"><?= e($log['action']) ?></span>
+                            <span style="font-size:.79rem;font-weight:700;font-family:var(--f-mono,'Courier New',monospace);color:var(--olive)">
+                                <?= e($log['action']) ?>
+                            </span>
                             <?php if ($log['details']): ?>
-                                <div style="font-size:.72rem;color:var(--text-muted)"><?= e(truncate($log['details'], 40)) ?></div>
+                            <div style="font-size:.71rem;color:var(--text-muted);margin-top:.1rem">
+                                <?= e(truncate($log['details'], 38)) ?>
+                            </div>
                             <?php endif; ?>
                         </td>
-                        <td style="font-size:.82rem">
-                            <?= $log['full_name'] ? e($log['full_name']) : '<span class="text-muted">System</span>' ?>
+                        <td style="font-size:.82rem;color:var(--text-mid)">
+                            <?= $log['full_name'] ? e(truncate($log['full_name'], 18)) : '<span class="text-muted">System</span>' ?>
                         </td>
-                        <td style="font-size:.75rem;color:var(--text-muted);white-space:nowrap">
+                        <td style="font-size:.74rem;color:var(--text-muted);white-space:nowrap">
                             <?= formatDate($log['created_at'], 'd M, H:i') ?>
                         </td>
                     </tr>
                     <?php endforeach; ?>
                     <?php if (empty($recentLogs)): ?>
-                        <tr><td colspan="3" class="text-muted" style="text-align:center;padding:1rem">No activity yet.</td></tr>
+                    <tr><td colspan="3" style="text-align:center;padding:1.5rem;color:var(--text-muted)">No activity yet.</td></tr>
                     <?php endif; ?>
                 </tbody>
             </table>

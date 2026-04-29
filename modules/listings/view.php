@@ -128,9 +128,22 @@ require_once __DIR__ . '/../../partials/header.php';
                 <!-- Meta grid -->
                 <div class="listing-meta-grid">
                     <div class="listing-meta-item">
-                        <div class="listing-meta-item__label">Quantity</div>
+                        <div class="listing-meta-item__label">Total Quantity</div>
+                        <div class="listing-meta-item__value">
+                            <?= e(formatQty((float)$listing['quantity']) . ' ' . $listing['unit']) ?>
+                        </div>
+                    </div>
+                    <div class="listing-meta-item">
+                        <div class="listing-meta-item__label">Available Now</div>
                         <div class="listing-meta-item__value listing-meta-item__value--accent">
-                            <?= e($listing['quantity'] . ' ' . $listing['unit']) ?>
+                            <?php
+                            $avail = (float)($listing['available_quantity'] ?? $listing['quantity']);
+                            $total = (float)$listing['quantity'];
+                            ?>
+                            <?= e(formatQty($avail) . ' ' . $listing['unit']) ?>
+                            <?php if ($total > 0 && $avail < $total): ?>
+                            <span class="qty-taken-badge"><?= round((($total - $avail) / $total) * 100) ?>% taken</span>
+                            <?php endif; ?>
                         </div>
                     </div>
                     <div class="listing-meta-item">
@@ -190,9 +203,10 @@ require_once __DIR__ . '/../../partials/header.php';
                         <tr>
                             <th>Person</th>
                             <th>Role</th>
+                            <th>Qty Reserved</th>
                             <th>Status</th>
                             <th>Pickup Code</th>
-                            <th>Reserved</th>
+                            <th>Reserved At</th>
                             <th style="text-align:right">Action</th>
                         </tr>
                     </thead>
@@ -204,6 +218,9 @@ require_once __DIR__ . '/../../partials/header.php';
                                 <span class="role-badge role-badge--<?= e(roleBadgeClass($r['reserver_role'])) ?>">
                                     <?= e(roleLabel($r['reserver_role'])) ?>
                                 </span>
+                            </td>
+                            <td style="font-weight:700;color:var(--olive-deep);white-space:nowrap">
+                                <?= e(formatQty((float)($r['reserved_quantity'] ?? 1)) . ' ' . $listing['unit']) ?>
                             </td>
                             <td>
                                 <span class="status-badge status-badge--<?= statusClass($r['reservation_status']) ?>">
@@ -262,9 +279,11 @@ require_once __DIR__ . '/../../partials/header.php';
                     </button>
                 </form>
                 <?php endif; ?>
-                <p class="text-muted" style="font-size:.77rem;text-align:center;margin-top:.75rem;line-height:1.5">
-                    <?= e(number_format((float)$listing['quantity'], 0)) ?>&nbsp;<?= e($listing['unit']) ?> available
-                </p>
+                <?php $bAvail = (float)($listing['available_quantity'] ?? $listing['quantity']); ?>
+                <div style="text-align:center;margin-top:.75rem;font-size:.8rem;color:var(--text-muted);line-height:1.6">
+                    <span style="font-weight:700;color:var(--olive-deep);font-size:1rem"><?= e(formatQty($bAvail)) ?></span>
+                    / <?= e(formatQty((float)$listing['quantity'])) ?> <?= e($listing['unit']) ?> available
+                </div>
             </div>
         </div>
 
@@ -307,27 +326,60 @@ require_once __DIR__ . '/../../partials/header.php';
         <?php elseif (in_array($role, ['general_user', 'charity']) && $reserveError === ''): ?>
 
         <!-- Reserve CTA -->
+        <?php
+        $availQty = (float)($listing['available_quantity'] ?? $listing['quantity']);
+        $listUnit = e($listing['unit']);
+        // Determine step: use decimals for weight/volume units
+        $decimalUnits = ['kg', 'g', 'litres', 'liters'];
+        $qtyStep = in_array(strtolower($listing['unit']), $decimalUnits) ? '0.1' : '1';
+        $qtyMin  = in_array(strtolower($listing['unit']), $decimalUnits) ? '0.1' : '1';
+        ?>
         <div class="reserve-panel" style="margin-bottom:1rem">
             <div class="reserve-panel__strip">
                 <div>
                     <div class="reserve-panel__free">Free</div>
-                    <div class="reserve-panel__qty-label"><?= e($listing['quantity'] . ' ' . $listing['unit']) ?> available</div>
+                    <div class="reserve-panel__qty-label">
+                        <?= e(formatQty($availQty) . ' ' . $listing['unit']) ?> available
+                    </div>
                 </div>
                 <span class="status-badge status-badge--green">Available</span>
             </div>
             <div class="reserve-panel__body">
-                <p style="font-size:.84rem;color:var(--text-muted);line-height:1.6;margin-bottom:1.1rem">
-                    Reserve now to secure a pickup slot. A unique pickup code will be sent to you immediately.
+                <p style="font-size:.84rem;color:var(--text-muted);line-height:1.6;margin-bottom:1rem">
+                    Reserve now to secure a pickup slot. A unique code will be sent immediately.
                 </p>
                 <form method="POST" action="<?= baseUrl('modules/reservations/reserve.php') ?>">
                     <input type="hidden" name="listing_id" value="<?= $listingId ?>">
                     <input type="hidden" name="csrf_token" value="<?= e(csrfToken()) ?>">
-                    <button class="btn btn-primary btn-block btn-lg" type="submit">
-                        Reserve This Listing
+
+                    <div class="reserve-qty-group">
+                        <label class="form-label" for="res-qty" style="font-size:.8rem;margin-bottom:.4rem">
+                            How much do you need?
+                        </label>
+                        <div class="reserve-qty-row">
+                            <input type="number"
+                                   id="res-qty"
+                                   name="reserved_quantity"
+                                   class="form-control"
+                                   value="<?= e(formatQty($availQty)) ?>"
+                                   min="<?= $qtyMin ?>"
+                                   max="<?= e(formatQty($availQty)) ?>"
+                                   step="<?= $qtyStep ?>"
+                                   required
+                                   style="font-size:1.05rem;font-weight:700;text-align:center">
+                            <span class="reserve-qty-unit"><?= $listUnit ?></span>
+                        </div>
+                        <div class="reserve-qty-hint">
+                            Max: <?= e(formatQty($availQty) . ' ' . $listing['unit']) ?>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary btn-block btn-lg" type="submit" style="margin-top:.85rem">
+                        Reserve
                     </button>
                 </form>
                 <p style="font-size:.73rem;color:var(--text-light);text-align:center;margin-top:.75rem">
-                    Free &middot; No account payment required
+                    Free &middot; No payment required
                 </p>
             </div>
         </div>
@@ -388,6 +440,14 @@ require_once __DIR__ . '/../../partials/header.php';
                 <div style="display:inline-flex;align-items:center;gap:.35rem;font-size:.74rem;font-weight:700;color:var(--olive);background:rgba(74,103,65,.08);padding:.22rem .65rem;border-radius:var(--r-pill);border:1px solid rgba(74,103,65,.18)">
                     <svg viewBox="0 0 14 14" width="12" fill="none"><path d="M2.5 7l3 3 6-6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     Verified business
+                </div>
+                <?php endif; ?>
+
+                <?php if (in_array($role, ['business', 'general_user', 'charity'], true)): ?>
+                <div style="margin-top:.85rem;padding-top:.85rem;border-top:1px solid var(--line)">
+                    <a href="<?= baseUrl('modules/reports/index.php?listing_id=' . $listingId) ?>" class="btn btn-sm btn-outline btn-block">
+                        Report this listing to admin
+                    </a>
                 </div>
                 <?php endif; ?>
             </div>

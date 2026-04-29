@@ -218,19 +218,43 @@ function adminGetListings(array $filters = [], int $limit = 25, int $offset = 0)
 
 /**
  * Return reports list with reporter and listing data.
+ * Supports status, date-range, keyword, and sort filters.
+ *
+ * @param array $filters  Keys: status, from_date, to_date, keyword, sort (newest|oldest)
  */
-function adminGetReports(string $statusFilter = '', int $limit = 25, int $offset = 0): array
+function adminGetReports(array $filters = [], int $limit = 25, int $offset = 0): array
 {
     $where  = ['1'];
     $params = [];
-    if ($statusFilter !== '' && $statusFilter !== 'all') {
+
+    $status = $filters['status'] ?? '';
+    if ($status !== '' && $status !== 'all') {
         $where[]  = 'rp.report_status = ?';
-        $params[] = $statusFilter;
+        $params[] = $status;
     }
+    if (!empty($filters['from_date'])) {
+        $where[]  = 'DATE(rp.created_at) >= ?';
+        $params[] = $filters['from_date'];
+    }
+    if (!empty($filters['to_date'])) {
+        $where[]  = 'DATE(rp.created_at) <= ?';
+        $params[] = $filters['to_date'];
+    }
+    if (!empty($filters['keyword'])) {
+        $kw       = '%' . $filters['keyword'] . '%';
+        $where[]  = '(rp.reason LIKE ? OR rp.details LIKE ? OR u.full_name LIKE ?)';
+        $params[] = $kw;
+        $params[] = $kw;
+        $params[] = $kw;
+    }
+
+    $orderDir = (($filters['sort'] ?? 'newest') === 'oldest') ? 'ASC' : 'DESC';
+
     $stmt = db()->prepare('
         SELECT rp.*,
                u.full_name  AS reporter_name,
                u.email      AS reporter_email,
+               u.role       AS reporter_role,
                fl.title     AS listing_title,
                ru.full_name AS reported_user_name,
                au.full_name AS reviewer_name
@@ -240,13 +264,51 @@ function adminGetReports(string $statusFilter = '', int $limit = 25, int $offset
         LEFT   JOIN users ru         ON ru.id  = rp.reported_user
         LEFT   JOIN users au         ON au.id  = rp.reviewed_by
         WHERE  ' . implode(' AND ', $where) . '
-        ORDER  BY rp.created_at DESC
+        ORDER  BY rp.created_at ' . $orderDir . '
         LIMIT  ? OFFSET ?
     ');
     $params[] = $limit;
     $params[] = $offset;
     $stmt->execute($params);
     return $stmt->fetchAll();
+}
+
+/**
+ * Count reports matching the same filters (for pagination + summary).
+ */
+function adminCountReports(array $filters = []): int
+{
+    $where  = ['1'];
+    $params = [];
+
+    $status = $filters['status'] ?? '';
+    if ($status !== '' && $status !== 'all') {
+        $where[]  = 'rp.report_status = ?';
+        $params[] = $status;
+    }
+    if (!empty($filters['from_date'])) {
+        $where[]  = 'DATE(rp.created_at) >= ?';
+        $params[] = $filters['from_date'];
+    }
+    if (!empty($filters['to_date'])) {
+        $where[]  = 'DATE(rp.created_at) <= ?';
+        $params[] = $filters['to_date'];
+    }
+    if (!empty($filters['keyword'])) {
+        $kw       = '%' . $filters['keyword'] . '%';
+        $where[]  = '(rp.reason LIKE ? OR rp.details LIKE ? OR u.full_name LIKE ?)';
+        $params[] = $kw;
+        $params[] = $kw;
+        $params[] = $kw;
+    }
+
+    $stmt = db()->prepare('
+        SELECT COUNT(*) FROM reports rp
+        JOIN   users u ON u.id = rp.report_by
+        WHERE  ' . implode(' AND ', $where)
+    );
+    $stmt->execute($params);
+    return (int) $stmt->fetchColumn();
 }
 
 /**

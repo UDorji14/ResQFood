@@ -15,7 +15,7 @@ function getReservation(int $id): ?array
 {
     $stmt = db()->prepare('
         SELECT r.*,
-               fl.title,      fl.category,    fl.quantity,     fl.unit,
+               fl.title,      fl.category,    fl.quantity,     fl.available_quantity, fl.unit,
                fl.description, fl.pickup_address,
                fl.pickup_start, fl.pickup_end,  fl.status AS listing_status,
                fl.business_user_id,
@@ -44,7 +44,7 @@ function getMyReservations(int $userId, string $statusFilter = ''): array
 {
     $sql    = '
         SELECT r.*,
-               fl.title, fl.category, fl.quantity, fl.unit,
+               fl.title, fl.category, fl.quantity, fl.available_quantity, fl.unit,
                fl.pickup_address, fl.pickup_start, fl.pickup_end,
                fl.status AS listing_status,
                bp.business_name, bp.city AS business_city
@@ -73,7 +73,7 @@ function getBusinessReservations(int $businessUserId, string $statusFilter = '')
 {
     $sql    = '
         SELECT r.*,
-               fl.title, fl.category, fl.quantity, fl.unit,
+               fl.title, fl.category, fl.quantity, fl.available_quantity, fl.unit,
                fl.pickup_start, fl.pickup_end,
                u.full_name AS reserved_by_name,
                u.email     AS reserved_by_email,
@@ -142,18 +142,24 @@ function createNotification(int $userId, string $title, string $message, ?string
 // ── Impact Records ────────────────────────────────────────────────────────
 
 /**
- * Create an impact record when a listing is confirmed as collected.
- * Estimates kg saved, meals saved, and CO2 reduced based on quantity + unit.
+ * Create an impact record when a reservation is confirmed as collected.
+ * Uses the reservation's reserved_quantity (not the full listing quantity)
+ * so partial pickups are tracked accurately.
  */
 function createImpactRecord(int $listingId, int $reservationId): void
 {
-    $stmt = db()->prepare('SELECT quantity, unit FROM food_listings WHERE id = ? LIMIT 1');
-    $stmt->execute([$listingId]);
-    $listing = $stmt->fetch();
-    if (!$listing) return;
+    $stmt = db()->prepare('
+        SELECT r.reserved_quantity, fl.unit
+        FROM   reservations r
+        JOIN   food_listings fl ON fl.id = r.listing_id
+        WHERE  r.id = ? LIMIT 1
+    ');
+    $stmt->execute([$reservationId]);
+    $row = $stmt->fetch();
+    if (!$row) return;
 
-    $qty  = (float) $listing['quantity'];
-    $unit = strtolower(trim($listing['unit'] ?? 'portions'));
+    $qty  = (float) $row['reserved_quantity'];
+    $unit = strtolower(trim($row['unit'] ?? 'portions'));
 
     // Rough unit-to-kg conversion factors
     $kgPerUnit = match (true) {

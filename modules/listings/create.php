@@ -71,17 +71,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $pdo->beginTransaction();
 
+            $qty = (float) $data['quantity'];
             $stmt = $pdo->prepare('
                 INSERT INTO food_listings
-                    (business_user_id, title, category, quantity, unit, description,
-                     pickup_address, pickup_start, pickup_end, expiry_time, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "available")
+                    (business_user_id, title, category, quantity, available_quantity, unit,
+                     description, pickup_address, pickup_start, pickup_end, expiry_time, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "available")
             ');
             $stmt->execute([
                 $uid,
                 $data['title'],
                 $data['category']       ?: null,
-                $data['quantity'],
+                $qty,
+                $qty,  // available_quantity starts equal to quantity
                 $data['unit'],
                 $data['description']    ?: null,
                 $data['pickup_address'] ?: null,

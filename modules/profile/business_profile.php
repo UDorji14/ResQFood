@@ -215,7 +215,7 @@ require_once __DIR__ . '/../../partials/header.php';
 </div>
 <?php endif; ?>
 
-<div class="profile-layout">
+<div class="profile-layout" <?= !empty($pwErrors) ? 'data-default-tab="password"' : '' ?>>
 
     <!-- ── Sidebar ── -->
     <aside class="profile-sidebar">
@@ -286,6 +286,9 @@ require_once __DIR__ . '/../../partials/header.php';
             <form method="POST" action="" novalidate>
                 <?= csrfField() ?>
                 <input type="hidden" name="_action" value="update_profile">
+                <!-- Preserve account fields so they are not overwritten -->
+                <input type="hidden" name="full_name" value="<?= e($old['full_name']) ?>">
+                <input type="hidden" name="phone"     value="<?= e($old['phone']) ?>">
 
                 <div class="card">
                     <div class="card-header"><h3>Business Information</h3></div>
@@ -503,33 +506,5 @@ require_once __DIR__ . '/../../partials/header.php';
     </div><!-- /.profile-main -->
 </div><!-- /.profile-layout -->
 
-<script>
-// Tab switching logic
-(function () {
-    var tabs    = document.querySelectorAll('#profile-tabs .profile-tab');
-    var sections = document.querySelectorAll('.profile-section');
-
-    // If password errors exist, open the password tab automatically
-    <?php if (!empty($pwErrors)): ?>
-    switchTab('password');
-    <?php endif; ?>
-
-    tabs.forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            switchTab(btn.dataset.tab);
-        });
-    });
-
-    function switchTab(tabId) {
-        tabs.forEach(function (b) { b.classList.remove('active'); });
-        sections.forEach(function (s) { s.classList.remove('active'); });
-
-        var activeBtn = document.querySelector('[data-tab="' + tabId + '"]');
-        var activeSection = document.getElementById('tab-' + tabId);
-        if (activeBtn)     activeBtn.classList.add('active');
-        if (activeSection) activeSection.classList.add('active');
-    }
-}());
-</script>
 
 <?php require_once __DIR__ . '/../../partials/footer.php'; ?>
