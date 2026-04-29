@@ -36,6 +36,15 @@ function currentUserEmail(): string
     return $_SESSION['user_email'] ?? '';
 }
 
+function dashboardUrlForRole(?string $role = null): string
+{
+    $role = $role ?? currentUserRole();
+    if ($role === 'admin') {
+        return baseUrl('modules/admin/dashboard.php');
+    }
+    return baseUrl('dashboard.php');
+}
+
 // ── Access Guards ─────────────────────────────────────────────────────────
 
 /**
@@ -73,7 +82,7 @@ function requireRole(array $allowedRoles, string $redirectTo = ''): void
 function redirectIfLoggedIn(string $redirectTo = ''): void
 {
     if (isLoggedIn()) {
-        redirect($redirectTo !== '' ? $redirectTo : baseUrl('dashboard.php'));
+        redirect($redirectTo !== '' ? $redirectTo : dashboardUrlForRole());
     }
 }
 

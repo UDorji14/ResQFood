@@ -169,26 +169,46 @@
         if (!shell || !toggle || !sidebar) return;
 
         let open = false;
+        let collapsed = false;
+        const isMobile = () => window.matchMedia('(max-width: 1024px)').matches;
         function sync() {
-            shell.classList.toggle('is-open', open);
-            toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-            document.body.style.overflow = open ? 'hidden' : '';
+            if (isMobile()) {
+                shell.classList.remove('is-collapsed');
+                shell.classList.toggle('is-open', open);
+                toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+                document.body.style.overflow = open ? 'hidden' : '';
+            } else {
+                open = false;
+                shell.classList.remove('is-open');
+                shell.classList.toggle('is-collapsed', collapsed);
+                toggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+                document.body.style.overflow = '';
+            }
         }
 
-        on(toggle, 'click', () => { open = !open; sync(); });
+        on(toggle, 'click', () => {
+            if (isMobile()) {
+                open = !open;
+            } else {
+                collapsed = !collapsed;
+            }
+            sync();
+        });
         on(backdrop, 'click', () => { open = false; sync(); });
         on(document, 'keydown', (e) => {
             if (e.key === 'Escape' && open) { open = false; sync(); }
         });
+        on(window, 'resize', sync);
 
         $$('.admin-nav-item, .admin-logout-btn', shell).forEach((el) => {
             on(el, 'click', () => {
-                if (window.matchMedia('(max-width: 1024px)').matches) {
+                if (isMobile()) {
                     open = false;
                     sync();
                 }
             });
         });
+        sync();
     })();
 
 

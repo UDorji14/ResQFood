@@ -52,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 auditLog('user_login', null, (int) $user['id']);
                 loginUser($user);
                 setFlash('success', 'Welcome back, ' . $user['full_name'] . '!');
-                redirect(baseUrl('dashboard.php'));
+                redirect(dashboardUrlForRole($user['role']));
             }
 
         } else {
