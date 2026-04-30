@@ -6,6 +6,8 @@
  * Loaded once via the bootstrap chain.
  */
 
+require_once __DIR__ . '/settings.php';
+
 // ── Output ────────────────────────────────────────────────────────────────
 
 /**

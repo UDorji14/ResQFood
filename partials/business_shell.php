@@ -45,9 +45,13 @@ if (!function_exists('renderBusinessShellStart')) {
             <aside class="biz-sidebar" id="biz-sidebar" aria-label="Business navigation">
                 <div class="biz-sidebar__brand">
                     <a href="<?= baseUrl('dashboard.php') ?>" class="biz-brand-mark">
-                        <svg viewBox="0 0 28 28" aria-hidden="true"><path d="M14 3C8 3 3 8.5 3 15c0 5 3.5 9 11 10V3z"/><path d="M14 3c6 0 11 5.5 11 12 0 5-3.5 9-11 10V3z" opacity=".55"/></svg>
+                        <?php if (setting('logo_path')): ?>
+                            <img src="<?= url(setting('logo_path')) ?>" alt="Logo" style="width:28px;height:28px;object-fit:contain">
+                        <?php else: ?>
+                            <svg viewBox="0 0 28 28" aria-hidden="true"><path d="M14 3C8 3 3 8.5 3 15c0 5 3.5 9 11 10V3z"/><path d="M14 3c6 0 11 5.5 11 12 0 5-3.5 9-11 10V3z" opacity=".55"/></svg>
+                        <?php endif; ?>
                         <div>
-                            <strong>ResQFood</strong>
+                            <strong><?= e(setting('site_name', 'ResQFood')) ?></strong>
                             <span>Business Console</span>
                         </div>
                     </a>

@@ -100,11 +100,6 @@ if (currentUserRole() === 'general_user') {
 
 <?php else: ?>
 
-<?php
-// When showing "all", render active first with a section heading, then past
-$showSections = ($statusFilter === 'all' && !empty($activeReservations) && !empty($pastReservations));
-?>
-
 <!-- ── Active Reservations ──────────────────────────────────── -->
 <?php if ($statusFilter === 'all' && !empty($activeReservations)): ?>
 <div class="section-heading" style="margin-bottom:1rem">
@@ -116,16 +111,11 @@ $showSections = ($statusFilter === 'all' && !empty($activeReservations) && !empt
 
 <?php
 $toRender = ($statusFilter === 'all') ? $activeReservations : $reservations;
-if ($statusFilter !== 'all') $toRender = $reservations;
 ?>
 
-<?php if ($statusFilter !== 'all' && empty($activeReservations) && $statusFilter === 'reserved'): ?>
-    <!-- Handled by the global empty state above -->
-<?php endif; ?>
-
-<?php if (!empty($toRender) || $statusFilter !== 'all'): ?>
+<?php if (!empty($toRender)): ?>
 <div class="res-feed">
-    <?php foreach (($statusFilter === 'all' ? $activeReservations : $reservations) as $r): ?>
+    <?php foreach ($toRender as $r): ?>
     <?php $isActive = $r['reservation_status'] === 'reserved'; ?>
     <div class="res-item <?= $isActive ? 'res-item--active' : 'res-item--' . e($r['reservation_status']) ?>">
 
@@ -208,11 +198,7 @@ if ($statusFilter !== 'all') $toRender = $reservations;
 <?php endif; ?>
 
 <!-- ── Past Reservations ────────────────────────────────────── -->
-<?php if ($showSections && !empty($pastReservations)): ?>
-<div class="section-heading" style="margin-top:2rem;margin-bottom:1rem">
-    <span class="section-heading__label">History</span>
-    <div class="section-heading__line"></div>
-</div>
+<?php if ($statusFilter === 'all' && !empty($pastReservations)): ?>
 <div class="res-feed">
     <?php foreach ($pastReservations as $r): ?>
     <div class="res-item res-item--<?= e($r['reservation_status']) ?>">

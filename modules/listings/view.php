@@ -62,24 +62,22 @@ if ($role === 'business' && (int) $listing['business_user_id'] === $uid) {
 
 $pageTitle = $listing['title'];
 require_once __DIR__ . '/../../partials/header.php';
+
 if ($role === 'charity') {
     require_once __DIR__ . '/../../partials/charity_shell.php';
-    $actions = '<a href="' . baseUrl('modules/listings/browse.php') . '" class="btn btn-outline">Browse Food</a>'
+    $actions = '<a href="' . baseUrl('modules/listings/browse.php') . '" class="btn btn-outline">Back to Browse</a>'
         . '<a href="' . baseUrl('modules/reservations/my.php') . '" class="btn btn-primary">My Collections</a>';
     renderCharityShellStart('browse', $listing['title'], 'Reserve and manage your pickup window.', $actions);
+} elseif ($role === 'business') {
+    require_once __DIR__ . '/../../partials/business_shell.php';
+    $actions = '<a href="' . baseUrl('modules/listings/index.php') . '" class="btn btn-outline">Back to Listings</a>';
+    renderBusinessShellStart('listings', $listing['title'], 'Manage this listing and its reservations.', $actions);
+} else {
+    require_once __DIR__ . '/../../partials/user_shell.php';
+    $actions = '<a href="' . baseUrl('modules/listings/browse.php') . '" class="btn btn-outline">Back to Browse</a>';
+    renderUserShellStart('browse', $listing['title'], 'Reserve and pick up surplus food.', $actions);
 }
 ?>
-
-<?php if ($role !== 'charity'): ?>
-<div class="breadcrumb">
-    <?php if ($role === 'business'): ?>
-        <a href="<?= baseUrl('modules/listings/index.php') ?>">My Listings</a>
-    <?php else: ?>
-        <a href="<?= baseUrl('modules/listings/browse.php') ?>">Browse Listings</a>
-    <?php endif; ?>
-    <span><?= e(truncate($listing['title'], 42)) ?></span>
-</div>
-<?php endif; ?>
 
 <!-- ── Hero image ────────────────────────────────────────────── -->
 <div class="listing-hero">
@@ -464,6 +462,14 @@ if ($role === 'charity') {
     </div>
 </div>
 
-<?php if ($role === 'charity') renderCharityShellEnd(); ?>
+<?php
+if ($role === 'charity') {
+    renderCharityShellEnd();
+} elseif ($role === 'business') {
+    renderBusinessShellEnd();
+} else {
+    renderUserShellEnd();
+}
+?>
 
 <?php require_once __DIR__ . '/../../partials/footer.php'; ?>

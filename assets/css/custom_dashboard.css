@@ -361,6 +361,47 @@ h1, h2, h3, h4, h5, h6, .brand, .dash-welcome__greeting {
     font-weight: 400 !important;
 }
 
+/* Listing Hero Image Constraints */
+.listing-hero {
+    position: relative;
+    width: 100%;
+    height: 350px;
+    border-radius: 20px !important;
+    overflow: hidden;
+    margin-bottom: 2rem;
+    background: #f1f5f9;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
+
+.listing-hero img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.listing-hero__cat {
+    position: absolute;
+    top: 1.5rem;
+    left: 1.5rem;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(8px);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #334155;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.listing-hero__status {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .stat-grid {
@@ -384,3 +425,126 @@ h1, h2, h3, h4, h5, h6, .brand, .dash-welcome__greeting {
         overflow-x: auto !important;
     }
 }
+
+/* ══════════════════════════════════════════════════════════
+   PREMIUM FLASH / TOAST NOTIFICATIONS
+   Visible, polished, and professional across all panels
+   ══════════════════════════════════════════════════════════ */
+
+.flash-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin-bottom: 1.5rem;
+}
+
+.flash-container--toast {
+    position: fixed !important;
+    top: 1.25rem !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    z-index: 9999 !important;
+    width: min(92vw, 480px) !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    pointer-events: none;
+    animation: flashSlideIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes flashSlideIn {
+    from { opacity: 0; transform: translateX(-50%) translateY(-18px) scale(0.96); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+
+.flash {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 1rem 1.4rem;
+    border-radius: 14px;
+    font-family: 'Outfit', 'Inter', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.4;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.1);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    letter-spacing: 0.01em;
+    pointer-events: all;
+    animation: flashFadeIn 0.3s ease both;
+    border: 1px solid transparent;
+}
+
+@keyframes flashFadeIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.flash svg {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    opacity: 0.95;
+}
+
+.flash--success {
+    background: linear-gradient(135deg, #16a34a 0%, #15803d 100%) !important;
+    color: #ffffff !important;
+    border-color: rgba(255,255,255,0.15) !important;
+}
+
+.flash--error {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+    color: #ffffff !important;
+    border-color: rgba(255,255,255,0.15) !important;
+}
+
+.flash--warning {
+    background: linear-gradient(135deg, #d97706 0%, #b45309 100%) !important;
+    color: #ffffff !important;
+    border-color: rgba(255,255,255,0.15) !important;
+}
+
+.flash--info {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+    color: #ffffff !important;
+    border-color: rgba(255,255,255,0.15) !important;
+}
+
+/* Auto-dismiss animation after 5s */
+.flash-container--toast .flash {
+    animation: flashSlideIn 0.35s cubic-bezier(0.34,1.56,0.64,1) both,
+               flashFadeOut 0.4s ease 5s both;
+}
+
+@keyframes flashFadeOut {
+    from { opacity: 1; transform: translateY(0); }
+    to   { opacity: 0; transform: translateY(-10px); }
+}
+
+
+/* ── Small screen helpers (non-shell rules) ── */
+@media (max-width: 768px) {
+    .dash-cols { flex-direction: column !important; }
+    .dash-welcome { padding: 1.25rem !important; }
+    .dash-welcome__greeting { font-size: 1.7rem !important; }
+}
+
+@media (max-width: 540px) {
+    .dash-welcome__greeting { font-size: 1.35rem !important; }
+
+    .tm-layout,
+    .settings-grid,
+    .settings-grid--3,
+    .contact-layout,
+    .form-row { grid-template-columns: 1fr !important; }
+
+    /* Flash on mobile */
+    .flash-container--toast { width: 96vw !important; top: 0.6rem !important; }
+    .flash { font-size: 0.87rem !important; padding: 0.8rem 1rem !important; border-radius: 12px !important; }
+    .table-wrapper { border-radius: 8px !important; }
+}
+
+/* NOTE: All shell/sidebar/topbar mobile rules are in app.css
+   (search for "DEFINITIVE MOBILE SHELL FIX" at the bottom of app.css)
+   Do NOT add shell mobile rules here — they will conflict. */

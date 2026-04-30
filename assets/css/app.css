@@ -722,30 +722,74 @@
 }
 
 @media (max-width: 1024px) {
-    .char-shell { grid-template-columns: 1fr; }
+    /* Layout: switch from side-by-side grid to stacked block */
+    .char-shell {
+        grid-template-columns: 1fr;
+        height: auto !important;
+        overflow: visible !important;
+        min-height: 100vh;
+    }
 
+    /* Sidebar: off-canvas drawer */
     .char-sidebar {
         position: fixed;
         left: 0;
         top: 0;
+        bottom: 0;
+        height: 100vh !important;
         transform: translateX(-105%);
-        transition: transform 220ms ease;
-        z-index: 80;
+        transition: transform 280ms cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 500 !important;
     }
 
     .char-shell.is-open .char-sidebar { transform: translateX(0); }
     .char-sidebar-toggle { display: inline-flex; }
 
+    /* Backdrop */
     .char-shell-backdrop {
         position: fixed;
         inset: 0;
-        background: rgba(22, 26, 21, 0.4);
+        background: rgba(22, 26, 21, 0.5);
         display: none;
-        z-index: 70;
+        z-index: 490 !important;
+    }
+    .char-shell.is-open .char-shell-backdrop { display: block; }
+
+    /* CRITICAL: workspace must scroll normally, not be a fixed-height container */
+    .char-workspace {
+        height: auto !important;
+        overflow-x: hidden !important;
+        overflow-y: visible !important;
+        min-height: 100vh;
+        padding: 0 !important;
     }
 
-    .char-shell.is-open .char-shell-backdrop { display: block; }
+    /* Topbar: sticky to viewport (works because workspace is no longer overflow:auto) */
+    .char-topbar {
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 200 !important;
+        background: linear-gradient(135deg, #f3efe6 0%, #efe6d8 100%) !important;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(181, 96, 74, 0.15);
+        padding: 0.85rem 1rem !important;
+        margin: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.75rem !important;
+        flex-wrap: nowrap !important;
+    }
+
+    .char-topbar h1 { font-size: 1.1rem !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .char-topbar p { display: none; }
+
+    /* Actual content gets padding instead */
+    .char-content {
+        padding: 1.25rem 1rem !important;
+    }
 }
+
 
 @media (max-width: 640px) {
     .char-workspace { padding-top: 1.2rem; }
@@ -4836,4 +4880,545 @@ input[type='file'].form-control::file-selector-button:hover {
     .admin-filter-actions { width: 100%; }
     .reserve-qty-row { flex-direction: column; align-items: stretch; }
     .reserve-qty-unit { text-align: center; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   DEFINITIVE MOBILE SHELL FIX  — All 4 panels (Admin / Biz / Usr / Char)
+
+   WHY position:fixed for topbar:
+   position:sticky requires NO overflow:hidden/auto/scroll ancestor.
+   Every workspace already uses overflow-y:auto as a scroll container.
+   Removing overflow breaks the layout. The ONLY reliable solution is
+   position:fixed for the topbar + padding-top on the workspace/content
+   to push content below the fixed bar.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Topbar height token (change in one place) ── */
+:root { --topbar-h: 58px; }
+
+@media (max-width: 1024px) {
+
+    /* ══ SHARED: all shells become block layout ══ */
+    .admin-shell,
+    .biz-shell,
+    .usr-shell,
+    .char-shell {
+        display: block !important;
+        height: auto !important;
+        min-height: 100dvh;
+        overflow: visible !important;
+    }
+
+    /* ══ SHARED: all sidebars → off-canvas drawer ══ */
+    .admin-sidebar,
+    .biz-sidebar,
+    .usr-sidebar,
+    .char-sidebar {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        bottom: 0 !important;
+        width: 280px !important;
+        height: 100dvh !important;
+        z-index: 600 !important;
+        transform: translateX(-110%) !important;
+        transition: transform 280ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+    }
+
+    /* Open state: JS toggles .is-open on the SHELL */
+    .admin-shell.is-open .admin-sidebar,
+    .biz-shell.is-open   .biz-sidebar,
+    .usr-shell.is-open   .usr-sidebar,
+    .char-shell.is-open  .char-sidebar {
+        transform: translateX(0) !important;
+        box-shadow: 6px 0 40px rgba(0,0,0,0.35) !important;
+    }
+
+    /* ══ SHARED: backdrops ══ */
+    .admin-shell-backdrop,
+    .biz-shell-backdrop,
+    .usr-shell-backdrop,
+    .char-shell-backdrop {
+        display: none !important;
+        position: fixed !important;
+        inset: 0 !important;
+        z-index: 590 !important;
+        background: rgba(0,0,0,0.55) !important;
+        backdrop-filter: blur(2px) !important;
+        -webkit-backdrop-filter: blur(2px) !important;
+    }
+
+    .admin-shell.is-open .admin-shell-backdrop,
+    .biz-shell.is-open   .biz-shell-backdrop,
+    .usr-shell.is-open   .usr-shell-backdrop,
+    .char-shell.is-open  .char-shell-backdrop {
+        display: block !important;
+    }
+
+    /* ══ SHARED: hamburger toggles always visible ══ */
+    .admin-sidebar-toggle,
+    .biz-sidebar-toggle,
+    .usr-sidebar-toggle,
+    .char-sidebar-toggle {
+        display: inline-flex !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* ══ SHARED: workspaces reset to normal page flow ══ */
+    .admin-workspace,
+    .biz-workspace,
+    .usr-workspace,
+    .char-workspace {
+        height: auto !important;
+        min-height: 100dvh !important;
+        overflow: visible !important;     /* NOT auto — avoids scroll-container trap */
+        margin-left: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    /* ══ SHARED: topbars → position:fixed (the only reliable approach) ══ */
+    .admin-topbar,
+    .biz-topbar,
+    .usr-topbar,
+    .char-topbar {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        height: var(--topbar-h) !important;
+        z-index: 400 !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.75rem !important;
+        padding: 0 1rem !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        box-sizing: border-box !important;
+        flex-wrap: nowrap !important;
+        overflow: hidden !important;
+    }
+
+    /* topbar head fills remaining space */
+    .admin-topbar__head,
+    .biz-topbar__head,
+    .usr-topbar__head,
+    .char-topbar__head {
+        flex: 1 !important;
+        min-width: 0 !important;
+    }
+
+    .admin-topbar__head h1,
+    .biz-topbar h1,
+    .usr-topbar h1,
+    .char-topbar h1 {
+        font-size: 1.05rem !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        margin: 0 !important;
+    }
+
+    /* hide subtitle on mobile — saves space */
+    .admin-topbar__head p,
+    .biz-topbar > .biz-topbar__head > p,
+    .usr-topbar > .usr-topbar__head > p,
+    .char-topbar > .char-topbar__head > p {
+        display: none !important;
+    }
+
+    /* Content areas: push down so content doesn't hide under fixed topbar */
+    .admin-content,
+    .biz-content,
+    .usr-content,
+    .char-content {
+        padding: calc(var(--topbar-h) + 1rem) 1rem 2rem !important;
+        box-sizing: border-box !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        overflow-x: hidden !important;
+    }
+
+    /* ── ADMIN-specific topbar styling ── */
+    .admin-topbar {
+        background: linear-gradient(135deg, rgba(15,23,42,0.98) 0%, rgba(2,6,23,0.99) 100%) !important;
+        border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+        box-shadow: 0 2px 20px rgba(0,0,0,0.5) !important;
+    }
+    .admin-topbar__head h1 { color: #ffffff !important; }
+
+    /* ── BIZ-specific topbar styling ── */
+    .biz-topbar {
+        background: rgba(238,243,234,0.97) !important;
+        border-bottom: 1px solid rgba(74,103,65,0.18) !important;
+        box-shadow: 0 2px 16px rgba(74,103,65,0.12) !important;
+        backdrop-filter: blur(16px) !important;
+        -webkit-backdrop-filter: blur(16px) !important;
+    }
+
+    /* ── USR-specific topbar styling ── */
+    .usr-topbar {
+        background: rgba(248,252,248,0.97) !important;
+        border-bottom: 1px solid rgba(16,185,129,0.15) !important;
+        box-shadow: 0 2px 16px rgba(0,0,0,0.08) !important;
+        backdrop-filter: blur(16px) !important;
+        -webkit-backdrop-filter: blur(16px) !important;
+    }
+
+    /* ── CHAR-specific topbar styling ── */
+    .char-topbar {
+        background: rgba(243,239,230,0.97) !important;
+        border-bottom: 1px solid rgba(181,96,74,0.15) !important;
+        box-shadow: 0 2px 16px rgba(181,96,74,0.1) !important;
+        backdrop-filter: blur(16px) !important;
+        -webkit-backdrop-filter: blur(16px) !important;
+    }
+
+    /* ── Tables: scroll horizontally always ── */
+    .table-wrapper,
+    .table-wrap {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        display: block !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+    }
+
+    .table { min-width: 520px !important; }
+
+    /* ── Grid adjustments ── */
+    .biz-snapshot { grid-template-columns: 1fr 1fr !important; }
+    .biz-grid     { grid-template-columns: 1fr !important; }
+    .stat-grid    { grid-template-columns: 1fr 1fr !important; gap: 0.85rem !important; }
+
+    /* ── Topbar actions on mobile ── */
+    .biz-topbar__actions,
+    .usr-topbar__actions,
+    .char-topbar__actions,
+    .admin-topbar__actions {
+        display: flex !important;
+        gap: 0.4rem !important;
+        flex-shrink: 0 !important;
+    }
+
+    .biz-topbar__actions .btn,
+    .usr-topbar__actions .btn,
+    .char-topbar__actions .btn {
+        font-size: 0.78rem !important;
+        padding: 0.4rem 0.7rem !important;
+    }
+}
+
+@media (max-width: 540px) {
+    .biz-snapshot { grid-template-columns: 1fr !important; }
+    .stat-grid    { grid-template-columns: 1fr !important; }
+
+    .admin-content,
+    .biz-content,
+    .usr-content,
+    .char-content {
+        padding: calc(var(--topbar-h) + 0.75rem) 0.85rem 2rem !important;
+    }
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   COMPREHENSIVE MOBILE SHELL FIXES — Business, User, Admin
+   
+   Root cause of all mobile bugs:
+   • All workspaces use height:100vh + overflow-y:auto at desktop.
+   • On mobile the shell grid → block, but workspace keeps its
+     scroll-container behaviour, so position:sticky is relative
+     to THAT container, not the viewport → topbar scrolls away.
+   • Fix: on mobile, reset workspace to normal flow; let <body>
+     handle scrolling; sticky topbar then sticks to the viewport.
+   ══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 1024px) {
+
+    /* ── BUSINESS SHELL ── */
+    .biz-shell {
+        display: block !important;
+        height: auto !important;
+        overflow: visible !important;
+        min-height: 100vh;
+    }
+
+    .biz-sidebar {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        bottom: 0 !important;
+        height: 100vh !important;
+        z-index: 500 !important;
+        transform: translateX(-105%) !important;
+        transition: transform 280ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+        overflow-y: auto !important;
+    }
+
+    .biz-shell.is-open .biz-sidebar {
+        transform: translateX(0) !important;
+        box-shadow: 4px 0 40px rgba(0,0,0,0.3) !important;
+    }
+
+    .biz-sidebar-toggle {
+        display: inline-flex !important;
+    }
+
+    .biz-shell-backdrop {
+        display: none;
+        position: fixed !important;
+        inset: 0 !important;
+        background: rgba(22, 26, 21, 0.5) !important;
+        z-index: 490 !important;
+    }
+
+    .biz-shell.is-open .biz-shell-backdrop {
+        display: block !important;
+    }
+
+    /* Workspace: normal page flow, NOT a scroll container */
+    .biz-workspace {
+        height: auto !important;
+        overflow-x: hidden !important;
+        overflow-y: visible !important;
+        min-height: 100vh;
+        padding: 0 !important;
+    }
+
+    /* Topbar: sticks to viewport top */
+    .biz-topbar {
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 200 !important;
+        background: linear-gradient(135deg, #eef3ea 0%, #e7edde 100%) !important;
+        backdrop-filter: blur(12px) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
+        border-bottom: 1px solid rgba(74, 103, 65, 0.15) !important;
+        padding: 0.85rem 1rem !important;
+        margin: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.75rem !important;
+        flex-wrap: nowrap !important;
+    }
+
+    .biz-topbar h1 {
+        font-size: 1.1rem !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .biz-topbar p { display: none !important; }
+
+    .biz-content {
+        padding: 1.25rem 1rem !important;
+    }
+
+
+    /* ── USER SHELL ── */
+    .usr-shell {
+        display: block !important;
+        height: auto !important;
+        overflow: visible !important;
+        min-height: 100vh;
+    }
+
+    .usr-sidebar {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        bottom: 0 !important;
+        height: 100vh !important;
+        z-index: 500 !important;
+        transform: translateX(-105%) !important;
+        transition: transform 280ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+        overflow-y: auto !important;
+    }
+
+    .usr-shell.is-open .usr-sidebar {
+        transform: translateX(0) !important;
+        box-shadow: 4px 0 40px rgba(0,0,0,0.3) !important;
+    }
+
+    .usr-sidebar-toggle {
+        display: inline-flex !important;
+    }
+
+    .usr-shell-backdrop {
+        display: none;
+        position: fixed !important;
+        inset: 0 !important;
+        background: rgba(22, 26, 21, 0.5) !important;
+        z-index: 490 !important;
+    }
+
+    .usr-shell.is-open .usr-shell-backdrop {
+        display: block !important;
+    }
+
+    .usr-workspace {
+        height: auto !important;
+        overflow-x: hidden !important;
+        overflow-y: visible !important;
+        min-height: 100vh;
+        padding: 0 !important;
+    }
+
+    .usr-topbar {
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 200 !important;
+        background: rgba(255, 255, 255, 0.92) !important;
+        backdrop-filter: blur(12px) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
+        border-bottom: 1px solid rgba(16, 185, 129, 0.15) !important;
+        padding: 0.85rem 1rem !important;
+        margin: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.75rem !important;
+        flex-wrap: nowrap !important;
+    }
+
+    .usr-topbar h1 {
+        font-size: 1.1rem !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .usr-topbar p { display: none !important; }
+
+    .usr-content {
+        padding: 1.25rem 1rem !important;
+    }
+
+
+    /* ── ADMIN SHELL ── */
+    .admin-shell {
+        display: block !important;
+        height: auto !important;
+        overflow: visible !important;
+        min-height: 100vh;
+    }
+
+    .admin-sidebar {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        bottom: 0 !important;
+        height: 100vh !important;
+        z-index: 500 !important;
+        transform: translateX(-105%) !important;
+        transition: transform 280ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+        overflow-y: auto !important;
+        width: 280px !important;
+    }
+
+    .admin-shell.is-open .admin-sidebar {
+        transform: translateX(0) !important;
+        box-shadow: 4px 0 40px rgba(0,0,0,0.5) !important;
+    }
+
+    .admin-sidebar-toggle {
+        display: inline-flex !important;
+    }
+
+    .admin-shell-backdrop {
+        display: none;
+        position: fixed !important;
+        inset: 0 !important;
+        background: rgba(0, 0, 0, 0.6) !important;
+        z-index: 490 !important;
+    }
+
+    .admin-shell.is-open .admin-shell-backdrop {
+        display: block !important;
+    }
+
+    .admin-workspace {
+        height: auto !important;
+        overflow-x: hidden !important;
+        overflow-y: visible !important;
+        min-height: 100vh;
+        padding: 0 !important;
+        margin-left: 0 !important;
+    }
+
+    .admin-topbar {
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 200 !important;
+        background: linear-gradient(135deg, rgba(15,23,42,0.98) 0%, rgba(2,6,23,0.99) 100%) !important;
+        backdrop-filter: blur(16px) !important;
+        -webkit-backdrop-filter: blur(16px) !important;
+        border-radius: 0 !important;
+        border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+        padding: 0.85rem 1rem !important;
+        margin: 0 !important;
+        box-shadow: 0 2px 20px rgba(0,0,0,0.4) !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.75rem !important;
+        flex-wrap: nowrap !important;
+    }
+
+    .admin-topbar__head h1 {
+        font-size: 1.1rem !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .admin-topbar__head p { display: none !important; }
+
+    .admin-content {
+        padding: 1.25rem 1rem !important;
+    }
+
+    /* Tables: all must scroll horizontally */
+    .table-wrapper,
+    .table-wrap,
+    [class*="table-wrap"] {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        display: block !important;
+        max-width: 100% !important;
+    }
+
+    .table {
+        min-width: 520px;
+    }
+
+    /* Biz snapshot grid */
+    .biz-snapshot {
+        grid-template-columns: 1fr 1fr !important;
+    }
+
+    .biz-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+@media (max-width: 540px) {
+    /* Single column stats */
+    .biz-snapshot {
+        grid-template-columns: 1fr !important;
+    }
+
+    .biz-topbar__actions,
+    .usr-topbar__actions,
+    .char-topbar__actions {
+        flex-wrap: wrap !important;
+        width: 100% !important;
+    }
+
+    .biz-topbar__actions .btn,
+    .usr-topbar__actions .btn,
+    .char-topbar__actions .btn {
+        flex: 1 !important;
+        justify-content: center !important;
+    }
 }

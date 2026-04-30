@@ -68,7 +68,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $reportedUserId = (int) $old['reported_user'];
             }
         } elseif ($listingRow && (int) $listingRow['business_user_id'] !== $uid) {
-            // Useful default: when reporting a listing, target the listing owner.
             $reportedUserId = (int) $listingRow['business_user_id'];
         }
 
@@ -87,7 +86,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $reportId = (int) $pdo->lastInsertId();
             auditLog('report_create', 'report_id=' . $reportId . ' role=' . $role, $uid);
 
-            // Notify all active admins
             $admins = $pdo->query('SELECT id FROM users WHERE role = "admin" AND status = "active"')->fetchAll();
             foreach ($admins as $admin) {
                 $pdo->prepare('
@@ -116,29 +114,15 @@ $reasons = [
     'Other',
 ];
 
-// Listings available for quick association in the form
 if ($role === 'business') {
-    $lStmt = $pdo->prepare('
-        SELECT id, title
-        FROM food_listings
-        WHERE business_user_id = ?
-        ORDER BY created_at DESC
-        LIMIT 100
-    ');
+    $lStmt = $pdo->prepare('SELECT id, title FROM food_listings WHERE business_user_id = ? ORDER BY created_at DESC LIMIT 100');
     $lStmt->execute([$uid]);
 } else {
-    $lStmt = $pdo->prepare('
-        SELECT fl.id, fl.title
-        FROM food_listings fl
-        WHERE fl.status IN ("available", "reserved", "collected", "expired")
-        ORDER BY fl.created_at DESC
-        LIMIT 150
-    ');
+    $lStmt = $pdo->prepare('SELECT fl.id, fl.title FROM food_listings fl WHERE fl.status IN ("available","reserved","collected","expired") ORDER BY fl.created_at DESC LIMIT 150');
     $lStmt->execute();
 }
 $listingOptions = $lStmt->fetchAll();
 
-// My reports list + optional status filter
 $where = 'WHERE rp.report_by = ?';
 $params = [$uid];
 if ($statusView !== 'all') {
@@ -156,12 +140,7 @@ $stmt = $pdo->prepare('
 $stmt->execute($params);
 $myReports = $stmt->fetchAll();
 
-$countStmt = $pdo->prepare('
-    SELECT report_status, COUNT(*) AS cnt
-    FROM reports
-    WHERE report_by = ?
-    GROUP BY report_status
-');
+$countStmt = $pdo->prepare('SELECT report_status, COUNT(*) AS cnt FROM reports WHERE report_by = ? GROUP BY report_status');
 $countStmt->execute([$uid]);
 $reportCounts = ['all' => 0, 'open' => 0, 'under_review' => 0, 'resolved' => 0, 'dismissed' => 0];
 foreach ($countStmt->fetchAll() as $row) {
@@ -170,38 +149,311 @@ foreach ($countStmt->fetchAll() as $row) {
 }
 
 $tabs = [
-    'all' => 'All',
-    'open' => 'Open',
-    'under_review' => 'Under Review',
-    'resolved' => 'Resolved',
-    'dismissed' => 'Dismissed',
+    'all'          => ['label' => 'All',          'icon' => '◉'],
+    'open'         => ['label' => 'Open',         'icon' => '●'],
+    'under_review' => ['label' => 'Under Review', 'icon' => '◑'],
+    'resolved'     => ['label' => 'Resolved',     'icon' => '✓'],
+    'dismissed'    => ['label' => 'Dismissed',    'icon' => '✕'],
+];
+
+/* Status colour map */
+$statusColors = [
+    'open'         => ['bg' => '#fef3c7', 'text' => '#92400e', 'dot' => '#f59e0b'],
+    'under_review' => ['bg' => '#dbeafe', 'text' => '#1e40af', 'dot' => '#3b82f6'],
+    'resolved'     => ['bg' => '#d1fae5', 'text' => '#065f46', 'dot' => '#10b981'],
+    'dismissed'    => ['bg' => '#f3f4f6', 'text' => '#6b7280', 'dot' => '#9ca3af'],
 ];
 
 $pageTitle = 'My Reports';
 require_once __DIR__ . '/../../partials/header.php';
 if ($role === 'business') {
     require_once __DIR__ . '/../../partials/business_shell.php';
-    renderBusinessShellStart('reports', 'Reports', 'Submit operational issues and track moderation outcomes.');
+    renderBusinessShellStart('reports', 'Reports', 'Submit issues and track moderation status.');
 } elseif ($role === 'general_user') {
     require_once __DIR__ . '/../../partials/user_shell.php';
-    renderUserShellStart('reports', 'Reports', 'Submit issues and track moderation updates from admins.');
+    renderUserShellStart('reports', 'Reports', 'Submit issues and track moderation updates.');
 } elseif ($role === 'charity') {
     require_once __DIR__ . '/../../partials/charity_shell.php';
-    renderCharityShellStart('reports', 'Reports', 'Submit operational issues and track moderation updates from admins.');
+    renderCharityShellStart('reports', 'Reports', 'Submit issues and track admin responses.');
 }
 ?>
-<?php if (!in_array($role, ['business', 'general_user', 'charity'], true)): ?>
-<div class="page-head">
-    <div class="page-head__top">
-        <div><h1>Report to Admin</h1><p class="text-muted">Submit issues and track moderation status.</p></div>
-    </div>
-</div>
-<?php endif; ?>
 
-<div class="<?= in_array($role, ['business', 'general_user', 'charity'], true) ? 'biz-report-layout' : 'admin-2col' ?>" style="align-items:start">
-    <div class="card">
-        <div class="card-header"><h3>Submit a Report</h3></div>
-        <div class="card-body">
+<style>
+/* ── Reports page scoped styles ── */
+.rpt-layout {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 1.25rem;
+    align-items: start;
+}
+
+/* Submit form card */
+.rpt-form-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.05);
+    position: sticky;
+    top: 1rem;
+}
+.rpt-form-card__head {
+    padding: 1.1rem 1.25rem;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+.rpt-form-card__head-icon {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #4a6741 0%, #3d5436 100%);
+    display: grid; place-items: center; flex-shrink: 0;
+}
+.rpt-form-card__head-icon svg { width: 18px; height: 18px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; }
+.rpt-form-card__head h3 { margin: 0; font-size: 1rem; font-weight: 700; color: #1a2a17; }
+.rpt-form-card__head p  { margin: 0; font-size: 0.78rem; color: #6b7280; }
+.rpt-form-card__body { padding: 1.25rem; }
+
+/* Reports list panel */
+.rpt-list-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.05);
+}
+.rpt-list-card__head {
+    padding: 1.1rem 1.25rem;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+.rpt-list-card__head h3 { margin: 0; font-size: 1rem; font-weight: 700; color: #1a2a17; }
+.rpt-count-badge {
+    background: #1a2a17;
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    letter-spacing: 0.04em;
+}
+
+/* Status filter chips — horizontal scroll */
+.rpt-filter-bar {
+    padding: 0.85rem 1.25rem;
+    border-bottom: 1px solid #f3f4f6;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: nowrap;
+    background: #fafafa;
+}
+.rpt-filter-bar::-webkit-scrollbar { display: none; }
+
+.rpt-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.38rem 0.85rem;
+    border-radius: 999px;
+    border: 1.5px solid #e5e7eb;
+    background: #fff;
+    color: #374151;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+}
+.rpt-chip:hover { border-color: #4a6741; color: #2e3f2a; background: #f0f4ee; text-decoration: none; }
+.rpt-chip.is-active { background: #1a2a17; border-color: #1a2a17; color: #fff; }
+.rpt-chip__count {
+    background: rgba(255,255,255,0.25);
+    font-size: 0.7rem;
+    padding: 0.05rem 0.45rem;
+    border-radius: 999px;
+    min-width: 1.4rem;
+    text-align: center;
+    line-height: 1.4;
+}
+.rpt-chip.is-active .rpt-chip__count { background: rgba(255,255,255,0.2); }
+.rpt-chip:not(.is-active) .rpt-chip__count { background: #f3f4f6; color: #374151; }
+
+/* Individual report cards */
+.rpt-feed {
+    padding: 0.75rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.rpt-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: box-shadow 0.15s ease;
+}
+.rpt-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+
+.rpt-card__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+    flex-wrap: wrap;
+}
+
+.rpt-card__id {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #6b7280;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.rpt-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    letter-spacing: 0.04em;
+}
+.rpt-status-pill__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.rpt-card__date {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.rpt-card__body {
+    padding: 1rem;
+}
+
+.rpt-card__reason {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+}
+
+.rpt-card__listing {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.78rem;
+    color: #4b5563;
+    background: #f3f4f6;
+    border-radius: 6px;
+    padding: 0.25rem 0.6rem;
+    margin-bottom: 0.65rem;
+}
+
+.rpt-card__details {
+    font-size: 0.84rem;
+    color: #6b7280;
+    line-height: 1.55;
+    border-top: 1px solid #f3f4f6;
+    padding-top: 0.65rem;
+    margin-top: 0.5rem;
+}
+
+.rpt-card__admin-note {
+    margin: 0.75rem 1rem 1rem;
+    padding: 0.75rem 1rem;
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    border: 1px solid #bfdbfe;
+    border-radius: 10px;
+    font-size: 0.82rem;
+    color: #1e40af;
+    line-height: 1.5;
+}
+.rpt-card__admin-note strong {
+    display: block;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #3b82f6;
+    margin-bottom: 0.35rem;
+}
+
+/* Empty state */
+.rpt-empty {
+    padding: 3rem 1.5rem;
+    text-align: center;
+}
+.rpt-empty-icon {
+    width: 56px; height: 56px;
+    border-radius: 16px;
+    background: #f3f4f6;
+    display: grid; place-items: center;
+    margin: 0 auto 1rem;
+}
+.rpt-empty-icon svg { width: 26px; height: 26px; stroke: #9ca3af; fill: none; stroke-width: 1.5; stroke-linecap: round; }
+.rpt-empty h4 { margin: 0 0 0.35rem; font-size: 0.95rem; color: #374151; }
+.rpt-empty p  { margin: 0; font-size: 0.83rem; color: #9ca3af; }
+
+/* Responsive */
+@media (max-width: 860px) {
+    .rpt-layout {
+        grid-template-columns: 1fr !important;
+    }
+    .rpt-form-card {
+        position: static !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .rpt-card__top { gap: 0.4rem; }
+    .rpt-card__date { width: 100%; margin-left: 0; }
+    .rpt-feed { padding: 0.5rem; }
+}
+</style>
+
+<div class="rpt-layout">
+
+    <!-- ── Left: Submit Form ── -->
+    <div class="rpt-form-card">
+        <div class="rpt-form-card__head">
+            <div class="rpt-form-card__head-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+            </div>
+            <div>
+                <h3>Submit a Report</h3>
+                <p>Describe the issue clearly for admins to review</p>
+            </div>
+        </div>
+        <div class="rpt-form-card__body">
+            <?php if (!empty($errors)): ?>
+                <div class="flash flash--error" style="margin-bottom:1rem;">
+                    <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                    Please fix the errors below.
+                </div>
+            <?php endif; ?>
+
             <form method="POST" action="">
                 <?= csrfField() ?>
                 <input type="hidden" name="action" value="create_report">
@@ -209,7 +461,7 @@ if ($role === 'business') {
                 <div class="form-group">
                     <label class="form-label" for="reason">Reason <span class="required">*</span></label>
                     <select id="reason" name="reason" class="form-control <?= isset($errors['reason']) ? 'is-invalid' : '' ?>" required>
-                        <option value="">Select a reason</option>
+                        <option value="">Select a reason…</option>
                         <?php foreach ($reasons as $reason): ?>
                             <option value="<?= e($reason) ?>" <?= $old['reason'] === $reason ? 'selected' : '' ?>><?= e($reason) ?></option>
                         <?php endforeach; ?>
@@ -218,12 +470,12 @@ if ($role === 'business') {
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label" for="listing_id">Related Listing (optional)</label>
+                    <label class="form-label" for="listing_id">Related Listing <span style="color:#9ca3af;font-weight:400">(optional)</span></label>
                     <select id="listing_id" name="listing_id" class="form-control <?= isset($errors['listing_id']) ? 'is-invalid' : '' ?>">
                         <option value="0">Not related to a specific listing</option>
                         <?php foreach ($listingOptions as $opt): ?>
                             <option value="<?= (int) $opt['id'] ?>" <?= (int)$old['listing_id'] === (int)$opt['id'] ? 'selected' : '' ?>>
-                                #<?= (int) $opt['id'] ?> - <?= e(truncate($opt['title'], 70)) ?>
+                                #<?= (int) $opt['id'] ?> — <?= e(truncate($opt['title'], 60)) ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
@@ -232,76 +484,100 @@ if ($role === 'business') {
 
                 <div class="form-group">
                     <label class="form-label" for="details">Details <span class="required">*</span></label>
-                    <textarea id="details" name="details" rows="5" class="form-control <?= isset($errors['details']) ? 'is-invalid' : '' ?>"
-                              placeholder="Describe what happened, when, and any important context..." required><?= e($old['details']) ?></textarea>
+                    <textarea id="details" name="details" rows="5"
+                              class="form-control <?= isset($errors['details']) ? 'is-invalid' : '' ?>"
+                              placeholder="Describe what happened, when, and any relevant context…"
+                              data-maxlength="2500"
+                              required><?= e($old['details']) ?></textarea>
                     <?php if (isset($errors['details'])): ?><span class="form-error"><?= e($errors['details']) ?></span><?php endif; ?>
                 </div>
 
-                <button type="submit" class="btn btn-primary">Submit Report</button>
+                <button type="submit" class="btn btn-primary" style="width:100%">
+                    <svg viewBox="0 0 20 20" width="16" height="16" fill="currentColor" style="flex-shrink:0" aria-hidden="true"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/></svg>
+                    Submit Report
+                </button>
             </form>
         </div>
     </div>
 
-    <div class="card">
-        <div class="card-header">
-            <h3>My Reports Status</h3>
-            <span class="status-badge status-badge--default"><?= $reportCounts['all'] ?> total</span>
+    <!-- ── Right: My Reports List ── -->
+    <div class="rpt-list-card">
+        <div class="rpt-list-card__head">
+            <h3>My Reports</h3>
+            <span class="rpt-count-badge"><?= $reportCounts['all'] ?> total</span>
         </div>
-        <div class="card-body" style="padding:1rem">
-            <nav class="tab-nav" style="margin-bottom:1rem">
-                <?php foreach ($tabs as $key => $label): ?>
-                    <a href="?status=<?= e($key) ?>" class="tab-nav__item <?= $statusView === $key ? 'active' : '' ?>">
-                        <?= e($label) ?>
-                        <?php if (!empty($reportCounts[$key])): ?>
-                            <span class="tab-nav__count"><?= $reportCounts[$key] ?></span>
-                        <?php endif; ?>
-                    </a>
-                <?php endforeach; ?>
-            </nav>
 
-            <?php if (empty($myReports)): ?>
-                <div class="empty-state" style="padding:1.5rem .5rem">
-                    <p class="text-muted" style="margin:0">No reports found for this status.</p>
+        <!-- Status filter chips -->
+        <div class="rpt-filter-bar" role="navigation" aria-label="Filter reports by status">
+            <?php foreach ($tabs as $key => $info): ?>
+                <a href="?status=<?= e($key) ?>"
+                   class="rpt-chip <?= $statusView === $key ? 'is-active' : '' ?>"
+                   aria-current="<?= $statusView === $key ? 'page' : 'false' ?>">
+                    <?= e($info['label']) ?>
+                    <?php if ($reportCounts[$key] > 0): ?>
+                        <span class="rpt-chip__count"><?= $reportCounts[$key] ?></span>
+                    <?php endif; ?>
+                </a>
+            <?php endforeach; ?>
+        </div>
+
+        <!-- Reports feed -->
+        <?php if (empty($myReports)): ?>
+            <div class="rpt-empty">
+                <div class="rpt-empty-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/><path d="M9 12h6M9 16h4"/></svg>
                 </div>
-            <?php else: ?>
-                <div class="report-feed">
-                    <?php foreach ($myReports as $rep): ?>
-                        <div class="report-item report-item--<?= e($rep['report_status']) ?>">
-                            <div class="report-item__head">
-                                <div class="report-item__id">
-                                    <span>Report #<?= (int) $rep['id'] ?></span>
-                                    <span class="status-badge status-badge--<?= statusClass($rep['report_status']) ?>">
-                                        <?= statusLabel($rep['report_status']) ?>
-                                    </span>
-                                    <span><?= formatDate($rep['created_at'], 'd M Y, H:i') ?></span>
-                                </div>
-                            </div>
+                <h4>No reports found</h4>
+                <p>No <?= $statusView !== 'all' ? e(str_replace('_', ' ', $statusView)) . ' ' : '' ?>reports yet. Use the form to submit one.</p>
+            </div>
+        <?php else: ?>
+            <div class="rpt-feed">
+                <?php foreach ($myReports as $rep):
+                    $sc = $statusColors[$rep['report_status']] ?? ['bg' => '#f3f4f6', 'text' => '#6b7280', 'dot' => '#9ca3af'];
+                ?>
+                    <div class="rpt-card">
+                        <div class="rpt-card__top">
+                            <span class="rpt-card__id">Report #<?= (int) $rep['id'] ?></span>
 
-                            <div class="report-item__body">
-                                <div class="report-item__reason"><?= e($rep['reason']) ?></div>
-                                <?php if (!empty($rep['listing_id'])): ?>
-                                <div class="report-item__links">
-                                    <span><strong>Listing:</strong> #<?= (int) $rep['listing_id'] ?> - <?= e(truncate($rep['listing_title'] ?? 'N/A', 55)) ?></span>
-                                </div>
-                                <?php endif; ?>
-                                <?php if (!empty($rep['details'])): ?>
-                                <div class="report-item__details"><?= nl2br(e($rep['details'])) ?></div>
-                                <?php endif; ?>
-                            </div>
+                            <span class="rpt-status-pill" style="background:<?= $sc['bg'] ?>;color:<?= $sc['text'] ?>">
+                                <span class="rpt-status-pill__dot" style="background:<?= $sc['dot'] ?>"></span>
+                                <?= statusLabel($rep['report_status']) ?>
+                            </span>
 
-                            <?php if (!empty($rep['admin_note'])): ?>
-                            <div class="report-item__foot">
-                                <div class="report-item__admin-note">
-                                    <div class="report-item__note-label">Admin note<?= !empty($rep['reviewer_name']) ? ' by ' . e($rep['reviewer_name']) : '' ?></div>
-                                    <?= nl2br(e($rep['admin_note'])) ?>
+                            <span class="rpt-card__date"><?= formatDate($rep['created_at'], 'd M Y, H:i') ?></span>
+                        </div>
+
+                        <div class="rpt-card__body">
+                            <div class="rpt-card__reason"><?= e($rep['reason']) ?></div>
+
+                            <?php if (!empty($rep['listing_id'])): ?>
+                                <div class="rpt-card__listing">
+                                    <svg width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="4" width="14" height="12" rx="2"/><path d="M7 8h6M7 11h4"/></svg>
+                                    Listing #<?= (int) $rep['listing_id'] ?> — <?= e(truncate($rep['listing_title'] ?? 'N/A', 50)) ?>
                                 </div>
-                            </div>
+                            <?php endif; ?>
+
+                            <?php if (!empty($rep['details'])): ?>
+                                <div class="rpt-card__details"><?= nl2br(e(truncate($rep['details'], 220))) ?></div>
                             <?php endif; ?>
                         </div>
-                    <?php endforeach; ?>
-                </div>
-            <?php endif; ?>
-        </div>
+
+                        <?php if (!empty($rep['admin_note'])): ?>
+                            <div class="rpt-card__admin-note">
+                                <strong>
+                                    <?php if (!empty($rep['reviewer_name'])): ?>
+                                        Admin note · <?= e($rep['reviewer_name']) ?>
+                                    <?php else: ?>
+                                        Admin note
+                                    <?php endif; ?>
+                                </strong>
+                                <?= nl2br(e($rep['admin_note'])) ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
     </div>
 </div>
 

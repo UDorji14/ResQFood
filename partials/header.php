@@ -22,7 +22,7 @@ function _navActive(string $segment): string {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="ResQFood - Redistribute surplus food, feed communities.">
-    <title><?= e($pageTitle) ?> - ResQFood</title>
+    <title><?= e($pageTitle) ?> - <?= e(setting('site_name', 'ResQFood')) ?></title>
     <link rel="stylesheet" href="<?= asset('css/app.css') ?>">
     <link rel="stylesheet" href="<?= asset('css/custom_dashboard.css') ?>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -39,13 +39,17 @@ function _navActive(string $segment): string {
     <div class="app-nav__inner">
 
         <!-- Brand -->
-        <a href="<?= baseUrl('dashboard.php') ?>" class="app-nav__brand" aria-label="ResQFood home">
-            <svg viewBox="0 0 28 28" width="22" height="22" fill="none" aria-hidden="true">
-                <path d="M14 3C8 3 3 8.5 3 15c0 5 3.5 9 11 10V3z" fill="#4a6741" opacity=".95"/>
-                <path d="M14 3c6 0 11 5.5 11 12 0 5-3.5 9-11 10V3z" fill="#7a9a6a" opacity=".65"/>
-                <circle cx="14" cy="11" r="2" fill="#fff" opacity=".5"/>
-            </svg>
-            ResQFood
+        <a href="<?= baseUrl('dashboard.php') ?>" class="app-nav__brand" aria-label="Home">
+            <?php if (setting('logo_path')): ?>
+                <img src="<?= url(setting('logo_path')) ?>" alt="Logo" style="width:24px;height:24px;object-fit:contain">
+            <?php else: ?>
+                <svg viewBox="0 0 28 28" width="22" height="22" fill="none" aria-hidden="true">
+                    <path d="M14 3C8 3 3 8.5 3 15c0 5 3.5 9 11 10V3z" fill="#4a6741" opacity=".95"/>
+                    <path d="M14 3c6 0 11 5.5 11 12 0 5-3.5 9-11 10V3z" fill="#7a9a6a" opacity=".65"/>
+                    <circle cx="14" cy="11" r="2" fill="#fff" opacity=".5"/>
+                </svg>
+            <?php endif; ?>
+            <?= e(setting('site_name', 'ResQFood')) ?>
         </a>
 
         <!-- Desktop nav links -->
