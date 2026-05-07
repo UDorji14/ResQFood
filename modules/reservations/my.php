@@ -192,6 +192,23 @@ $toRender = ($statusFilter === 'all') ? $activeReservations : $reservations;
         </div>
         <?php endif; ?>
 
+        <?php if (!empty($r['pickup_latitude']) && !empty($r['pickup_longitude'])): ?>
+        <div class="reservation-location-block">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:.6rem;margin-bottom:.55rem;flex-wrap:wrap">
+                <strong style="font-size:.82rem;color:var(--text-dark)">Pickup map</strong>
+                <button class="btn btn-outline btn-sm" type="button" id="maps-btn-<?= (int) $r['id'] ?>">Open in Google Maps</button>
+            </div>
+            <div id="reservationMap<?= (int) $r['id'] ?>"
+                 class="listing-map listing-map--small"
+                 data-food-location-map="1"
+                 data-lat="<?= e((string) $r['pickup_latitude']) ?>"
+                 data-lng="<?= e((string) $r['pickup_longitude']) ?>"
+                 data-address="<?= e($r['pickup_address'] ?: 'Pickup location') ?>"
+                 data-label="<?= e($r['pickup_location_label'] ?? '') ?>"
+                 data-directions-btn-id="maps-btn-<?= (int) $r['id'] ?>"></div>
+        </div>
+        <?php endif; ?>
+
     </div>
     <?php endforeach; ?>
 </div>
@@ -240,6 +257,22 @@ $toRender = ($statusFilter === 'all') ? $activeReservations : $reservations;
                 <?php endif; ?>
             </div>
         </div>
+        <?php if (!empty($r['pickup_latitude']) && !empty($r['pickup_longitude'])): ?>
+        <div class="reservation-location-block" style="padding-top:0">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:.6rem;margin-bottom:.55rem;flex-wrap:wrap">
+                <strong style="font-size:.82rem;color:var(--text-dark)">Pickup map</strong>
+                <button class="btn btn-outline btn-sm" type="button" id="maps-btn-past-<?= (int) $r['id'] ?>">Open in Google Maps</button>
+            </div>
+            <div id="reservationPastMap<?= (int) $r['id'] ?>"
+                 class="listing-map listing-map--small"
+                 data-food-location-map="1"
+                 data-lat="<?= e((string) $r['pickup_latitude']) ?>"
+                 data-lng="<?= e((string) $r['pickup_longitude']) ?>"
+                 data-address="<?= e($r['pickup_address'] ?: 'Pickup location') ?>"
+                 data-label="<?= e($r['pickup_location_label'] ?? '') ?>"
+                 data-directions-btn-id="maps-btn-past-<?= (int) $r['id'] ?>"></div>
+        </div>
+        <?php endif; ?>
     </div>
     <?php endforeach; ?>
 </div>
@@ -251,4 +284,7 @@ $toRender = ($statusFilter === 'all') ? $activeReservations : $reservations;
 if (currentUserRole() === 'general_user') renderUserShellEnd();
 if (currentUserRole() === 'charity') renderCharityShellEnd();
 ?>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="<?= asset('js/food-location-map.js') ?>"></script>
 <?php require_once __DIR__ . '/../../partials/footer.php'; ?>

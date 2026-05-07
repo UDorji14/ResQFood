@@ -45,7 +45,8 @@ function getMyReservations(int $userId, string $statusFilter = ''): array
     $sql    = '
         SELECT r.*,
                fl.title, fl.category, fl.quantity, fl.available_quantity, fl.unit,
-               fl.pickup_address, fl.pickup_start, fl.pickup_end,
+               fl.pickup_address, fl.pickup_location_label, fl.pickup_latitude, fl.pickup_longitude,
+               fl.pickup_start, fl.pickup_end,
                fl.status AS listing_status,
                bp.business_name, bp.city AS business_city
         FROM   reservations r

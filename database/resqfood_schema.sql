@@ -134,6 +134,12 @@ CREATE TABLE IF NOT EXISTS food_listings (
     description      TEXT           DEFAULT NULL,
     pickup_address   TEXT           DEFAULT NULL
                                     COMMENT 'Override if different from business profile address',
+    pickup_location_label VARCHAR(150) DEFAULT NULL
+                                    COMMENT 'Optional pickup hint like Main gate or Reception desk',
+    pickup_latitude  DECIMAL(10,8) DEFAULT NULL
+                                    COMMENT 'Pinned map latitude for pickup point',
+    pickup_longitude DECIMAL(11,8) DEFAULT NULL
+                                    COMMENT 'Pinned map longitude for pickup point',
     pickup_start     DATETIME       NOT NULL COMMENT 'Earliest pickup time',
     pickup_end       DATETIME       NOT NULL COMMENT 'Latest pickup time',
     expiry_time      DATETIME       DEFAULT NULL COMMENT 'When the food expires — for urgency display',
@@ -403,3 +409,50 @@ VALUES (
 -- NOTE: The hash above is a placeholder. Run this PHP snippet to generate a fresh one:
 --   echo password_hash('Admin@1234', PASSWORD_BCRYPT, ['cost' => 12]);
 -- Then UPDATE users SET password_hash = '<output>' WHERE email = 'admin@resqfood.local';
+
+-- ============================================================
+-- PATCH SECTION: Existing database upgrades
+-- Use this section when upgrading an existing DB without reimporting.
+-- ============================================================
+
+SET @db_name := DATABASE();
+SET @table_name := 'food_listings';
+
+SET @has_pickup_location_label := (
+    SELECT COUNT(*)
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = @db_name
+      AND TABLE_NAME = @table_name
+      AND COLUMN_NAME = 'pickup_location_label'
+);
+SET @sql := IF(@has_pickup_location_label = 0,
+    'ALTER TABLE food_listings ADD COLUMN pickup_location_label VARCHAR(150) NULL AFTER pickup_address',
+    'SELECT "pickup_location_label already exists"'
+);
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @has_pickup_latitude := (
+    SELECT COUNT(*)
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = @db_name
+      AND TABLE_NAME = @table_name
+      AND COLUMN_NAME = 'pickup_latitude'
+);
+SET @sql := IF(@has_pickup_latitude = 0,
+    'ALTER TABLE food_listings ADD COLUMN pickup_latitude DECIMAL(10,8) NULL AFTER pickup_location_label',
+    'SELECT "pickup_latitude already exists"'
+);
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @has_pickup_longitude := (
+    SELECT COUNT(*)
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = @db_name
+      AND TABLE_NAME = @table_name
+      AND COLUMN_NAME = 'pickup_longitude'
+);
+SET @sql := IF(@has_pickup_longitude = 0,
+    'ALTER TABLE food_listings ADD COLUMN pickup_longitude DECIMAL(11,8) NULL AFTER pickup_latitude',
+    'SELECT "pickup_longitude already exists"'
+);
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;

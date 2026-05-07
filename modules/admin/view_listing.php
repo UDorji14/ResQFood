@@ -116,6 +116,9 @@ renderAdminShellStart(
                     <dt>Quantity</dt><dd><?= e($listing['quantity'] . ' ' . $listing['unit']) ?></dd>
                     <dt>Description</dt><dd><?= nl2br(e($listing['description'] ?? '-')) ?></dd>
                     <dt>Pickup address</dt><dd><?= e($listing['pickup_address'] ?? '-') ?></dd>
+                    <dt>Pickup label</dt><dd><?= e($listing['pickup_location_label'] ?? '-') ?></dd>
+                    <dt>Latitude</dt><dd><?= $listing['pickup_latitude'] !== null ? e((string) $listing['pickup_latitude']) : '-' ?></dd>
+                    <dt>Longitude</dt><dd><?= $listing['pickup_longitude'] !== null ? e((string) $listing['pickup_longitude']) : '-' ?></dd>
                     <dt>Pickup window</dt>
                     <dd>
                         <?= formatDate($listing['pickup_start'], 'd M Y, H:i') ?> →
@@ -126,6 +129,23 @@ renderAdminShellStart(
                     <dt>Created</dt><dd><?= formatDate($listing['created_at'], 'd M Y, H:i') ?></dd>
                     <dt>Updated</dt><dd><?= formatDate($listing['updated_at'], 'd M Y, H:i') ?></dd>
                 </dl>
+
+                <?php if (!empty($listing['pickup_latitude']) && !empty($listing['pickup_longitude'])): ?>
+                <div style="margin-top:1rem">
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:.6rem;flex-wrap:wrap;margin-bottom:.6rem">
+                        <strong style="font-size:.86rem">Pickup map preview</strong>
+                        <button type="button" id="admin-open-google-maps" class="btn btn-outline btn-sm">Open in Google Maps</button>
+                    </div>
+                    <div id="adminFoodLocationMap"
+                         class="listing-map"
+                         data-food-location-map="1"
+                         data-lat="<?= e((string) $listing['pickup_latitude']) ?>"
+                         data-lng="<?= e((string) $listing['pickup_longitude']) ?>"
+                         data-address="<?= e($listing['pickup_address'] ?: 'Pickup point') ?>"
+                         data-label="<?= e($listing['pickup_location_label'] ?? '') ?>"
+                         data-directions-btn-id="admin-open-google-maps"></div>
+                </div>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -228,4 +248,9 @@ renderAdminShellStart(
 </div>
 
 <?php renderAdminShellEnd(); ?>
+<?php if (!empty($listing['pickup_latitude']) && !empty($listing['pickup_longitude'])): ?>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="<?= asset('js/food-location-map.js') ?>"></script>
+<?php endif; ?>
 <?php require_once __DIR__ . '/../../partials/footer.php'; ?>

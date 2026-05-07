@@ -52,6 +52,9 @@ $old = [
     'unit'           => $listing['unit'],
     'description'    => $listing['description']    ?? '',
     'pickup_address' => $listing['pickup_address'] ?? '',
+    'pickup_location_label' => $listing['pickup_location_label'] ?? '',
+    'pickup_latitude' => $listing['pickup_latitude'] ?? '',
+    'pickup_longitude' => $listing['pickup_longitude'] ?? '',
     'pickup_start'   => $listing['pickup_start'],
     'pickup_end'     => $listing['pickup_end'],
     'expiry_time'    => $listing['expiry_time']    ?? '',
@@ -67,11 +70,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'quantity'       => sanitize($_POST['quantity']       ?? ''),
         'unit'           => sanitize($_POST['unit']           ?? 'portions'),
         'description'    => sanitize($_POST['description']    ?? ''),
-        'pickup_address' => sanitize($_POST['pickup_address'] ?? ''),
         'pickup_start'   => normaliseDatetime($_POST['pickup_start'] ?? ''),
         'pickup_end'     => normaliseDatetime($_POST['pickup_end']   ?? ''),
         'expiry_time'    => normaliseDatetime($_POST['expiry_time']  ?? ''),
     ];
+    [$locationData, $locationErrors] = validatePickupLocationInput($_POST);
+    $data = array_merge($data, $locationData);
+    $errors = array_merge($errors, $locationErrors);
     $old = $data;
 
     validateRequired($data, ['title', 'quantity', 'unit', 'pickup_start', 'pickup_end'], $errors);
@@ -109,6 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 UPDATE food_listings
                 SET    title = ?, category = ?, quantity = ?, available_quantity = ?,
                        unit = ?, description = ?, pickup_address = ?,
+                       pickup_location_label = ?, pickup_latitude = ?, pickup_longitude = ?,
                        pickup_start = ?, pickup_end = ?, expiry_time = ?,
                        status = ?, updated_at = NOW()
                 WHERE  id = ?
@@ -119,7 +125,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $newAvailable,
                 $data['unit'],
                 $data['description']    ?: null,
-                $data['pickup_address'] ?: null,
+                $data['pickup_address'],
+                $data['pickup_location_label'] ?: null,
+                $data['pickup_latitude'],
+                $data['pickup_longitude'],
                 $data['pickup_start'],
                 $data['pickup_end'],
                 $data['expiry_time']    ?: null,
@@ -257,11 +266,50 @@ renderBusinessShellStart('post', 'Edit Listing', 'Update food details, quantitie
                 </div>
                 <div class="card-body">
                     <div class="form-group" style="margin-bottom:0">
-                        <label class="form-label" for="pickup_address">Pickup address</label>
+                        <label class="form-label" for="pickup_address">
+                            Pickup address <span class="required" aria-hidden="true">*</span>
+                        </label>
                         <input type="text" id="pickup_address" name="pickup_address"
-                               class="form-control" value="<?= e($old['pickup_address']) ?>"
-                               placeholder="Leave blank to use business profile address">
-                        <span class="form-hint">Only shown to the person who reserves.</span>
+                               class="form-control <?= isset($errors['pickup_address']) ? 'is-invalid' : '' ?>"
+                               value="<?= e($old['pickup_address']) ?>"
+                               placeholder="e.g. 12 Baker Street, rear entrance"
+                               maxlength="255" required>
+                        <?php if (isset($errors['pickup_address'])): ?>
+                            <span class="form-error"><?= e($errors['pickup_address']) ?></span>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="pickup_location_label">Location label (optional)</label>
+                        <input type="text" id="pickup_location_label" name="pickup_location_label"
+                               class="form-control <?= isset($errors['pickup_location_label']) ? 'is-invalid' : '' ?>"
+                               value="<?= e($old['pickup_location_label']) ?>"
+                               placeholder="e.g. Main gate, Back entrance, Reception desk"
+                               maxlength="150">
+                        <?php if (isset($errors['pickup_location_label'])): ?>
+                            <span class="form-error"><?= e($errors['pickup_location_label']) ?></span>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom:0">
+                        <div class="map-picker-header">
+                            <div>
+                                <div class="form-label" style="margin-bottom:.2rem">Pin pickup location <span class="required" aria-hidden="true">*</span></div>
+                                <span class="form-hint">Click on the map or drag the marker to the exact pickup point.</span>
+                            </div>
+                            <button class="btn btn-outline btn-sm" type="button" id="use-current-location">Use My Current Location</button>
+                        </div>
+                        <input type="hidden" name="pickup_latitude" id="pickup_latitude" value="<?= e($old['pickup_latitude']) ?>">
+                        <input type="hidden" name="pickup_longitude" id="pickup_longitude" value="<?= e($old['pickup_longitude']) ?>">
+                        <div id="listingMapPicker"
+                             class="listing-map"
+                             data-lat="<?= e($old['pickup_latitude']) ?>"
+                             data-lng="<?= e($old['pickup_longitude']) ?>"
+                             data-readonly="0"></div>
+                        <div id="location-feedback" class="map-help-text"></div>
+                        <?php if (isset($errors['pickup_latitude'])): ?>
+                            <span class="form-error"><?= e($errors['pickup_latitude']) ?></span>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -360,6 +408,10 @@ renderBusinessShellStart('post', 'Edit Listing', 'Update food details, quantitie
         </div>
     </div>
 </form>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="<?= asset('js/listing-map-picker.js') ?>"></script>
 
 <script>
 (function () {

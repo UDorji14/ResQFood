@@ -330,6 +330,61 @@ function listingUnitOptions(): array
 }
 
 /**
+ * Normalize and validate pickup location payload coming from listing forms.
+ * Returns [cleanData, fieldErrors].
+ */
+function validatePickupLocationInput(array $input): array
+{
+    $errors = [];
+    $clean  = [
+        'pickup_address'        => sanitize((string) ($input['pickup_address'] ?? '')),
+        'pickup_location_label' => sanitize((string) ($input['pickup_location_label'] ?? '')),
+        'pickup_latitude'       => trim((string) ($input['pickup_latitude'] ?? '')),
+        'pickup_longitude'      => trim((string) ($input['pickup_longitude'] ?? '')),
+    ];
+
+    if ($clean['pickup_address'] === '') {
+        $errors['pickup_address'] = 'Pickup address is required.';
+    } else {
+        validateMaxLength($clean['pickup_address'], 255, 'pickup_address', $errors);
+    }
+
+    if ($clean['pickup_location_label'] !== '') {
+        validateMaxLength($clean['pickup_location_label'], 150, 'pickup_location_label', $errors);
+    }
+
+    if ($clean['pickup_latitude'] === '' || $clean['pickup_longitude'] === '') {
+        $errors['pickup_latitude'] = 'Please pin the pickup location on the map.';
+    } else {
+        if (!is_numeric($clean['pickup_latitude'])) {
+            $errors['pickup_latitude'] = 'Latitude must be a valid number.';
+        }
+        if (!is_numeric($clean['pickup_longitude'])) {
+            $errors['pickup_longitude'] = 'Longitude must be a valid number.';
+        }
+
+        if (!isset($errors['pickup_latitude'])) {
+            $lat = (float) $clean['pickup_latitude'];
+            if ($lat < -90 || $lat > 90) {
+                $errors['pickup_latitude'] = 'Latitude must be between -90 and 90.';
+            } else {
+                $clean['pickup_latitude'] = number_format($lat, 8, '.', '');
+            }
+        }
+        if (!isset($errors['pickup_longitude'])) {
+            $lng = (float) $clean['pickup_longitude'];
+            if ($lng < -180 || $lng > 180) {
+                $errors['pickup_longitude'] = 'Longitude must be between -180 and 180.';
+            } else {
+                $clean['pickup_longitude'] = number_format($lng, 8, '.', '');
+            }
+        }
+    }
+
+    return [$clean, $errors];
+}
+
+/**
  * Render a listing image or SVG placeholder.
  */
 function listingImageTag(?string $path, string $alt = '', string $class = ''): string

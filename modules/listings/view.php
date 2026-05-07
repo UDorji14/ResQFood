@@ -193,6 +193,34 @@ if ($role === 'charity') {
                 </div>
                 <?php endif; ?>
 
+                <div class="food-location-card">
+                    <div class="food-location-card__head">
+                        <h3>Pickup Location</h3>
+                        <?php if (!empty($listing['pickup_latitude']) && !empty($listing['pickup_longitude'])): ?>
+                            <button type="button" class="btn btn-outline btn-sm" id="open-google-maps-btn">Open in Google Maps</button>
+                        <?php endif; ?>
+                    </div>
+                    <p class="food-location-card__address">
+                        <?= e($listing['pickup_address'] ?: ($listing['business_city'] ?: 'Pickup address not provided.')) ?>
+                    </p>
+                    <?php if (!empty($listing['pickup_location_label'])): ?>
+                        <p class="food-location-card__label"><?= e($listing['pickup_location_label']) ?></p>
+                    <?php endif; ?>
+
+                    <?php if (!empty($listing['pickup_latitude']) && !empty($listing['pickup_longitude'])): ?>
+                        <div id="foodLocationMap"
+                             class="listing-map"
+                             data-food-location-map="1"
+                             data-lat="<?= e((string) $listing['pickup_latitude']) ?>"
+                             data-lng="<?= e((string) $listing['pickup_longitude']) ?>"
+                             data-address="<?= e($listing['pickup_address'] ?: ($listing['business_city'] ?: 'Pickup point')) ?>"
+                             data-label="<?= e($listing['pickup_location_label'] ?? '') ?>"
+                             data-directions-btn-id="open-google-maps-btn"></div>
+                    <?php else: ?>
+                        <div class="map-unavailable-note">Map location is not available for this listing.</div>
+                    <?php endif; ?>
+                </div>
+
             </div>
         </div>
 
@@ -471,5 +499,11 @@ if ($role === 'charity') {
     renderUserShellEnd();
 }
 ?>
+
+<?php if (!empty($listing['pickup_latitude']) && !empty($listing['pickup_longitude'])): ?>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="<?= asset('js/food-location-map.js') ?>"></script>
+<?php endif; ?>
 
 <?php require_once __DIR__ . '/../../partials/footer.php'; ?>
