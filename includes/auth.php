@@ -137,7 +137,7 @@ function getCurrentUser(): ?array
     }
 
     $stmt = db()->prepare('
-        SELECT id, full_name, email, phone, role, status, created_at
+        SELECT id, full_name, email, phone, role, status, email_notifications_enabled, created_at
         FROM   users
         WHERE  id = ?
         LIMIT  1

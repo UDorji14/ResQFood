@@ -9,6 +9,7 @@ require_once __DIR__ . '/../../includes/functions.php';
 require_once __DIR__ . '/../../includes/auth.php';
 require_once __DIR__ . '/../../includes/flash.php';
 require_once __DIR__ . '/../../includes/csrf.php';
+require_once __DIR__ . '/../../includes/notification_service.php';
 
 requireRole(['business', 'general_user', 'charity']);
 
@@ -97,6 +98,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     currentUserName() . ' submitted a report: ' . truncate($old['reason'], 70),
                     baseUrl('modules/admin/reports.php?status=open'),
                 ]);
+            }
+
+            try {
+                notify_report_submitted($reportId);
+            } catch (Throwable $e) {
+                error_log('[ResQFoodddd Report Notify] ' . $e->getMessage());
             }
 
             setFlash('success', 'Report submitted successfully. Admins will review it soon.');

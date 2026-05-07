@@ -39,6 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $data = [
             'full_name'         => sanitize($_POST['full_name']         ?? ''),
             'phone'             => sanitize($_POST['phone']             ?? ''),
+            'email_notifications_enabled' => isset($_POST['email_notifications_enabled']) ? 1 : 0,
             'organization_name' => sanitize($_POST['organization_name'] ?? ''),
             'contact_person'    => sanitize($_POST['contact_person']    ?? ''),
             'address'           => sanitize($_POST['address']           ?? ''),
@@ -64,11 +65,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Update core user record
                 $pdo->prepare('
                     UPDATE users
-                    SET    full_name = ?, phone = ?, updated_at = NOW()
+                    SET    full_name = ?, phone = ?, email_notifications_enabled = ?, updated_at = NOW()
                     WHERE  id = ?
                 ')->execute([
                     $data['full_name'],
                     $data['phone'] !== '' ? $data['phone'] : null,
+                    $data['email_notifications_enabled'],
                     $uid,
                 ]);
 
@@ -278,6 +280,7 @@ renderCharityShellStart('profile', 'Charity Profile', 'Manage your organisation 
                 <!-- Preserve account fields so they are not overwritten -->
                 <input type="hidden" name="full_name" value="<?= e($old['full_name']) ?>">
                 <input type="hidden" name="phone"     value="<?= e($old['phone']) ?>">
+                <input type="hidden" name="email_notifications_enabled" value="<?= ((int)($profile['email_notifications_enabled'] ?? 1) === 1) ? '1' : '0' ?>">
 
                 <div class="card">
                     <div class="card-header"><h3>Organisation Information</h3></div>
@@ -389,6 +392,13 @@ renderCharityShellStart('profile', 'Charity Profile', 'Manage your organisation 
                                    value="<?= e($profile['email'] ?? '') ?>"
                                    disabled>
                             <span class="form-hint">Email cannot be changed. Contact support if needed.</span>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="email_notifications_enabled">Email Notifications</label>
+                            <label style="display:flex;align-items:center;gap:.5rem;font-size:.9rem;color:var(--text-mid)">
+                                <input type="checkbox" id="email_notifications_enabled" name="email_notifications_enabled" value="1" <?= ((int)($profile['email_notifications_enabled'] ?? 1) === 1) ? 'checked' : '' ?>>
+                                Receive email notifications
+                            </label>
                         </div>
 
                     </div>

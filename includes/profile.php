@@ -18,6 +18,7 @@ function getBusinessProfile(int $userId): ?array
         SELECT bp.*,
                u.full_name, u.email, u.phone,
                u.status    AS account_status,
+               u.email_notifications_enabled,
                u.created_at AS joined_at
         FROM   business_profiles bp
         JOIN   users u ON u.id = bp.user_id
@@ -37,6 +38,7 @@ function getCharityProfile(int $userId): ?array
         SELECT cp.*,
                u.full_name, u.email, u.phone,
                u.status    AS account_status,
+               u.email_notifications_enabled,
                u.created_at AS joined_at
         FROM   charity_profiles cp
         JOIN   users u ON u.id = cp.user_id

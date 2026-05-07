@@ -4,6 +4,7 @@
 
 (function () {
   'use strict';
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   /* ─── Navbar scroll state ─── */
   const nav = document.querySelector('.site-nav');
@@ -46,7 +47,7 @@
       e.preventDefault();
       const offset = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 72;
       const top = target.getBoundingClientRect().top + window.scrollY - offset;
-      window.scrollTo({ top, behavior: 'smooth' });
+      window.scrollTo({ top, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
     });
   });
 

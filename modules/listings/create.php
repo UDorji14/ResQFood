@@ -13,6 +13,7 @@ require_once __DIR__ . '/../../includes/validation.php';
 require_once __DIR__ . '/../../includes/csrf.php';
 require_once __DIR__ . '/../../includes/profile.php';
 require_once __DIR__ . '/../../includes/listings.php';
+require_once __DIR__ . '/../../includes/notification_service.php';
 
 requireRole(['business']);
 
@@ -118,6 +119,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $msg .= ' (Note: Image could not be saved - ' . $imageError . ')';
             }
             setFlash('success', $msg);
+            try {
+                notify_new_food_listing($listingId);
+            } catch (Throwable $e) {
+                error_log('[ResQFoodddd Listing Notify] ' . $e->getMessage());
+            }
             redirect(baseUrl('modules/listings/view.php?id=' . $listingId));
 
         } catch (Throwable $e) {

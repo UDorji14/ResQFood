@@ -15,6 +15,7 @@ require_once __DIR__ . '/../../includes/flash.php';
 require_once __DIR__ . '/../../includes/csrf.php';
 require_once __DIR__ . '/../../includes/listings.php';
 require_once __DIR__ . '/../../includes/reservations.php';
+require_once __DIR__ . '/../../includes/notification_service.php';
 
 requireRole(['business', 'admin']);
 
@@ -105,6 +106,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $pdo->commit();
 
         setFlash('success', 'Pickup confirmed for "' . truncate($reservation['title'], 40) . '"! Impact recorded.');
+        try {
+            notify_food_delivered($reservationId);
+        } catch (Throwable $e) {
+            error_log('[ResQFoodddd Confirm Notify] ' . $e->getMessage());
+        }
         redirect(baseUrl('modules/reservations/index.php'));
 
     } catch (Throwable $e) {

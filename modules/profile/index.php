@@ -30,6 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $data = [
             'full_name' => sanitize($_POST['full_name'] ?? ''),
             'phone'     => sanitize($_POST['phone']     ?? ''),
+            'email_notifications_enabled' => isset($_POST['email_notifications_enabled']) ? 1 : 0,
         ];
 
         validateRequired($data, ['full_name'], $errors);
@@ -38,10 +39,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (empty($errors)) {
             $pdo->prepare('
-                UPDATE users SET full_name = ?, phone = ?, updated_at = NOW() WHERE id = ?
+                UPDATE users SET full_name = ?, phone = ?, email_notifications_enabled = ?, updated_at = NOW() WHERE id = ?
             ')->execute([
                 $data['full_name'],
                 $data['phone'] !== '' ? $data['phone'] : null,
+                $data['email_notifications_enabled'],
                 $uid,
             ]);
             $_SESSION['user_name'] = $data['full_name'];
@@ -193,6 +195,13 @@ if (currentUserRole() === 'general_user') {
                             <label class="form-label">Email Address</label>
                             <input type="email" class="form-control" value="<?= e($user['email'] ?? '') ?>" disabled>
                             <span class="form-hint">Email address cannot be changed. Contact support if needed.</span>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="email_notifications_enabled">Email Notifications</label>
+                            <label style="display:flex;align-items:center;gap:.5rem;font-size:.9rem;color:var(--text-mid)">
+                                <input type="checkbox" id="email_notifications_enabled" name="email_notifications_enabled" value="1" <?= ((int)($user['email_notifications_enabled'] ?? 1) === 1) ? 'checked' : '' ?>>
+                                Receive email notifications
+                            </label>
                         </div>
                     </div>
                     <div class="card-footer"><button type="submit" class="btn btn-primary">Save Account Details</button></div>

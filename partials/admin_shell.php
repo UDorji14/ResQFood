@@ -14,6 +14,8 @@ if (!function_exists('adminShellIcon')) {
             'reports' => '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3L17 16H3L10 3Z"/><path d="M10 8v3.2"/><path d="M10 13.8h.01"/></svg>',
             'health' => '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3l6 2.5v5c0 4.5-3 8.5-6 9.5-3-1-6-5-6-9.5v-5L10 3z" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M10 7v6m-3-3h6" stroke="currentColor" stroke-width="1.5"/></svg>',
             'settings' => '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.2 8.5l2.8-1-1.3-3.1-2.8 1a6.3 6.3 0 00-2-1.7V1h-3.4v2.8a6.3 6.3 0 00-2 1.7l-2.8-1-1.3 3.1 2.8 1a6.3 6.3 0 000 2.4l-2.8 1 1.3 3.1 2.8-1a6.3 6.3 0 002 1.7V19h3.4v-2.8a6.3 6.3 0 002-1.7l2.8 1 1.3-3.1-2.8-1a6.3 6.3 0 000-2.4zM10 12.8a2.8 2.8 0 110-5.6 2.8 2.8 0 010 5.6z" fill="currentColor"/></svg>',
+            'email_logs' => '<svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="4" width="15" height="12" rx="2"/><path d="m2.5 7 7.5 5 7.5-5"/></svg>',
+            'test_email' => '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10h10"/><path d="M10 6l4 4-4 4"/><rect x="2.5" y="4" width="15" height="12" rx="2"/></svg>',
             'logout' => '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8 4.5H6.2C5.4 4.5 4.8 5.1 4.8 5.9V14.1C4.8 14.9 5.4 15.5 6.2 15.5H8"/><path d="M11.5 13.2L14.8 10L11.5 6.8"/><path d="M14.8 10H8.5"/></svg>',
         ];
 
@@ -64,6 +66,8 @@ if (!function_exists('renderAdminShellStart')) {
                     <?= adminShellItem(baseUrl('modules/admin/reports.php'), 'Reports', 'reports', $currentKey === 'reports') ?>
                     <?= adminShellItem(baseUrl('modules/admin/system_health.php'), 'System Health', 'health', $currentKey === 'health') ?>
                     <?= adminShellItem(baseUrl('modules/admin/settings.php'), 'Site Settings', 'settings', $currentKey === 'settings') ?>
+                    <?= adminShellItem(baseUrl('modules/admin/email_logs.php'), 'Email Logs', 'email_logs', $currentKey === 'email_logs') ?>
+                    <?= adminShellItem(baseUrl('modules/admin/test_email.php'), 'Test Email', 'test_email', $currentKey === 'test_email') ?>
                 </nav>
 
                 <div class="admin-sidebar__foot">

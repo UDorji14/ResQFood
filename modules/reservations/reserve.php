@@ -14,6 +14,7 @@ require_once __DIR__ . '/../../includes/flash.php';
 require_once __DIR__ . '/../../includes/csrf.php';
 require_once __DIR__ . '/../../includes/listings.php';
 require_once __DIR__ . '/../../includes/reservations.php';
+require_once __DIR__ . '/../../includes/notification_service.php';
 
 requireRole(['general_user', 'charity']);
 
@@ -122,6 +123,11 @@ try {
     $pdo->commit();
 
     setFlash('success', 'Reserved <strong>' . e(formatQty($requestedQty) . ' ' . $listing['unit']) . '</strong>! Your pickup code is: <strong>' . e($pickupCode) . '</strong>. Show it at the business when you collect.');
+    try {
+        notify_reservation_created($reservationId);
+    } catch (Throwable $e) {
+        error_log('[ResQFoodddd Reserve Notify] ' . $e->getMessage());
+    }
     redirect($backUrl);
 
 } catch (Throwable $e) {

@@ -1,5 +1,15 @@
 <?php
 require_once __DIR__ . '/includes/functions.php';
+require_once __DIR__ . '/config/db.php';
+
+$teamMembers = [];
+try {
+    $pdo = db();
+    $stmt = $pdo->query("SELECT full_name, role_title, short_description, image_path FROM team_members WHERE is_active = 1 ORDER BY display_order ASC, id ASC LIMIT 6");
+    $teamMembers = $stmt->fetchAll();
+} catch (Throwable $e) {
+    // Keep homepage rendering even if team table/config is not ready.
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -12,6 +22,27 @@ require_once __DIR__ . '/includes/functions.php';
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;1,9..144,500;1,9..144,600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?= asset('css/style.css') ?>">
+    <style>
+        .home-team { padding: 5.5rem 0; background: #f7f4ef; }
+        .home-team-head { text-align: center; max-width: 700px; margin: 0 auto 2.5rem; }
+        .home-team-sub { color: #6a7a64; line-height: 1.7; }
+        .home-team-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 280px)); justify-content: center; gap: 1.4rem; }
+        .home-team-card { width: 100%; max-width: 280px; background: #fff; border-radius: 18px; overflow: hidden; box-shadow: 0 6px 20px rgba(30,50,20,0.09); transition: transform .25s ease, box-shadow .25s ease; }
+        .home-team-card:hover { transform: translateY(-5px); box-shadow: 0 16px 30px rgba(30,50,20,0.13); }
+        .home-team-photo { width: 100%; aspect-ratio: 4/3; max-height: 210px; background: #e8f0e4; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .home-team-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .home-team-body { padding: 1rem 1.15rem 1.2rem; }
+        .home-team-name { font-family: 'Fraunces', serif; font-size: 1.08rem; color: #1c2b19; margin: 0 0 .35rem; }
+        .home-team-role { margin: 0 0 .55rem; color: #4a6741; font-weight: 700; font-size: .76rem; letter-spacing: .08em; text-transform: uppercase; }
+        .home-team-bio { margin: 0; color: #667460; font-size: .9rem; line-height: 1.62; }
+        .home-team-empty { max-width: 620px; margin: 0 auto; text-align: center; background: #fff; padding: 1.2rem; border-radius: 14px; color: #6a7a64; }
+        @media (max-width: 640px) {
+            .home-team { padding: 4rem 0; }
+            .home-team-grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+            .home-team-card { max-width: none; }
+            .home-team-photo { max-height: 190px; }
+        }
+    </style>
 </head>
 <body>
 
@@ -778,6 +809,72 @@ require_once __DIR__ . '/includes/functions.php';
                 <p>Active businesses and organisations on the platform.</p>
             </article>
         </div>
+    </div>
+</section>
+
+
+<!-- ════ TEAM — Meet our team ════ -->
+<section class="home-team" id="team" aria-labelledby="team-h">
+    <div class="container">
+        <div class="home-team-head" data-reveal>
+            <span class="overline">Meet our team</span>
+            <h2 id="team-h">People behind the platform.</h2>
+            <p class="home-team-sub">A mission-focused team working to reduce food waste, strengthen local coordination, and support communities through practical technology.</p>
+        </div>
+
+        <?php
+        $fallbackTeam = [
+            [
+                'full_name' => 'Sarah Johnson',
+                'role_title' => 'Co-Founder & Operations Lead',
+                'short_description' => 'Leads daily redistribution workflows with food partners and pickup communities.',
+                'image_path' => '',
+            ],
+            [
+                'full_name' => 'Daniel Reyes',
+                'role_title' => 'Community Partnerships',
+                'short_description' => 'Builds relationships with charities and local organisations to expand impact.',
+                'image_path' => '',
+            ],
+            [
+                'full_name' => 'Aisha Khan',
+                'role_title' => 'Platform Coordinator',
+                'short_description' => 'Keeps listings, reservations, and support operations running smoothly.',
+                'image_path' => '',
+            ],
+        ];
+        $displayTeam = !empty($teamMembers) ? $teamMembers : $fallbackTeam;
+        ?>
+
+        <?php if (!empty($displayTeam)): ?>
+        <div class="home-team-grid">
+            <?php foreach ($displayTeam as $member): ?>
+            <article class="home-team-card" data-reveal>
+                <div class="home-team-photo">
+                    <?php if (!empty($member['image_path'])): ?>
+                        <img src="<?= url($member['image_path']) ?>" alt="<?= e($member['full_name']) ?>" loading="lazy">
+                    <?php else: ?>
+                        <svg viewBox="0 0 64 64" width="54" fill="none" stroke="#4a6741" stroke-width="1.5" aria-hidden="true">
+                            <circle cx="32" cy="23" r="11"/>
+                            <path d="M8 56c0-13.3 10.7-24 24-24s24 10.7 24 24"/>
+                        </svg>
+                    <?php endif; ?>
+                </div>
+                <div class="home-team-body">
+                    <h3 class="home-team-name"><?= e($member['full_name']) ?></h3>
+                    <?php if (!empty($member['role_title'])): ?>
+                    <p class="home-team-role"><?= e($member['role_title']) ?></p>
+                    <?php endif; ?>
+                    <?php if (!empty($member['short_description'])): ?>
+                    <p class="home-team-bio"><?= e($member['short_description']) ?></p>
+                    <?php endif; ?>
+                </div>
+            </article>
+            <?php endforeach; ?>
+        </div>
+        <?php else: ?>
+        <div class="home-team-empty">Team profiles will appear here soon.</div>
+        <?php endif; ?>
     </div>
 </section>
 

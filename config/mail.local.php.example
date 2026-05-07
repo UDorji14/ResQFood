@@ -1,0 +1,24 @@
+<?php
+
+return [
+    'provider'   => 'brevo',
+    'host'       => 'smtp-relay.brevo.com',
+    'port'       => 587,
+    'encryption' => 'tls',
+
+    // Replace with your real Brevo SMTP details.
+    'username'   => 'aa952f001@smtp-brevo.com',
+    'password'   => 'PASTE_YOUR_FULL_BREVO_SMTP_KEY_HERE',
+
+    // This must be a verified Brevo sender.
+    'from_email' => 'your_verified_sender_email@example.com',
+    'from_name'  => 'ResQFoodddd',
+
+    // Admin alert destination.
+    'admin_email'=> 'admin@example.com',
+
+    // Keep empty for automatic localhost/live URL detection.
+    'app_url'    => '',
+
+    'enabled'    => true,
+];

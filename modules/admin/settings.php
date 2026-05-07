@@ -12,6 +12,7 @@ require_once __DIR__ . '/../../includes/csrf.php';
 
 requireRole(['admin']);
 $pdo = db();
+$mailConfig = require __DIR__ . '/../../config/mail.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verifyCsrf();
@@ -235,6 +236,76 @@ renderAdminShellStart('settings', 'Website Settings', 'Manage your brand identit
                 <p>Add, edit, reorder, or remove team members shown on the public About Us page.</p>
             </div>
             <a href="<?= baseUrl('modules/admin/team_members.php') ?>" class="btn btn-primary">Manage Team →</a>
+        </div>
+    </div>
+
+    <!-- ── Email Settings (Read-only) ── -->
+    <div class="settings-card">
+        <div class="settings-card__header">
+            <div class="settings-card__icon">
+                <svg viewBox="0 0 20 20" width="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="4" width="16" height="12" rx="2"/><path d="m2 7 8 5 8-5"/></svg>
+            </div>
+            <div>
+                <p class="settings-card__title">Email Settings</p>
+                <p class="settings-card__subtitle">Current mail configuration visibility (read-only)</p>
+            </div>
+        </div>
+        <?php
+            $mailEnabled = !empty($mailConfig['enabled']);
+            $mailFromName = (string) ($mailConfig['from_name'] ?? '');
+            $mailFromEmail = (string) ($mailConfig['from_email'] ?? '');
+            $mailAdminEmail = (string) ($mailConfig['admin_email'] ?? '');
+            $mailProvider = (string) ($mailConfig['provider'] ?? '');
+            $mailHost = (string) ($mailConfig['host'] ?? '');
+            $mailPort = (string) ($mailConfig['port'] ?? '');
+            $mailEncryption = (string) ($mailConfig['encryption'] ?? '');
+            $mailAppUrl = trim((string) ($mailConfig['app_url'] ?? ''));
+            $mailAppUrlMode = $mailAppUrl !== '' ? 'Configured (fixed APP URL)' : 'Automatic detection (recommended for localhost project folders)';
+        ?>
+        <div class="settings-grid">
+            <div class="settings-field">
+                <label>Mail Enabled</label>
+                <input type="text" value="<?= $mailEnabled ? 'Yes' : 'No' ?>" disabled>
+            </div>
+            <div class="settings-field">
+                <label>Provider</label>
+                <input type="text" value="<?= e($mailProvider !== '' ? $mailProvider : '-') ?>" disabled>
+            </div>
+            <div class="settings-field">
+                <label>From Name</label>
+                <input type="text" value="<?= e($mailFromName !== '' ? $mailFromName : '-') ?>" disabled>
+            </div>
+            <div class="settings-field">
+                <label>From Email</label>
+                <input type="text" value="<?= e($mailFromEmail !== '' ? $mailFromEmail : '-') ?>" disabled>
+            </div>
+            <div class="settings-field">
+                <label>Admin Alert Email</label>
+                <input type="text" value="<?= e($mailAdminEmail !== '' ? $mailAdminEmail : '-') ?>" disabled>
+            </div>
+            <div class="settings-field">
+                <label>Encryption</label>
+                <input type="text" value="<?= e($mailEncryption !== '' ? strtoupper($mailEncryption) : '-') ?>" disabled>
+            </div>
+            <div class="settings-field">
+                <label>SMTP Host</label>
+                <input type="text" value="<?= e($mailHost !== '' ? $mailHost : '-') ?>" disabled>
+            </div>
+            <div class="settings-field">
+                <label>SMTP Port</label>
+                <input type="text" value="<?= e($mailPort !== '' ? $mailPort : '-') ?>" disabled>
+            </div>
+            <div class="settings-field" style="grid-column:1/-1">
+                <label>APP URL Mode</label>
+                <input type="text" value="<?= e($mailAppUrlMode) ?>" disabled>
+                <small>
+                    <?php if ($mailAppUrl !== ''): ?>
+                        Current APP URL: <?= e($mailAppUrl) ?>
+                    <?php else: ?>
+                        `app_url.php` will auto-detect base URL from the current request and project folder.
+                    <?php endif; ?>
+                </small>
+            </div>
         </div>
     </div>
 

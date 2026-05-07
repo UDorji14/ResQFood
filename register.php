@@ -12,6 +12,7 @@ require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/flash.php';
 require_once __DIR__ . '/includes/validation.php';
 require_once __DIR__ . '/includes/csrf.php';
+require_once __DIR__ . '/includes/notification_service.php';
 
 redirectIfLoggedIn();
 
@@ -97,6 +98,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $msg .= ' Your profile is pending admin verification - complete it after logging in to speed up the process.';
             }
             setFlash('success', $msg);
+            try {
+                notify_new_user_registered($userId);
+            } catch (Throwable $e) {
+                error_log('[ResQFoodddd Register Notify] ' . $e->getMessage());
+            }
             redirect(baseUrl('login.php'));
 
         } catch (Throwable $e) {
